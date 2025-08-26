@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ILS Institute - Exam Results System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --primary-red: #ff2d55;
+            --primary-blue: #1e90ff;
+            --dark-bg: #0f0f1a;
+            --darker-bg: #0a0a12;
+            --card-bg: #1a1a2e;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--dark-bg);
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .gradient-text {
+            background: linear-gradient(90deg, var(--primary-red), var(--primary-blue));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--primary-red), var(--primary-blue));
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-red), var(--primary-blue));
+            border: none;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 45, 85, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--card-bg);
+            border: 1px solid var(--primary-blue);
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(30, 144, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .input-field {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(30, 144, 255, 0.3);
+        }
+
+        .table-container {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .table-header {
+            background: linear-gradient(90deg, var(--primary-red), var(--primary-blue));
+        }
+
+        .table-row:nth-child(even) {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .table-row:hover {
+            background: rgba(255, 255, 255, 0.07);
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(255, 45, 85, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(255, 45, 85, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 45, 85, 0);
+            }
+        }
+
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .glow {
+            text-shadow: 0 0 10px rgba(255, 45, 85, 0.7);
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Custom select arrow */
+        select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1.25rem;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-[#0a0a12] to-[#1a1a2e] py-6 px-4 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <div class="w-12 h-12 rounded-full gradient-bg flex items-center justify-center text-white text-2xl font-bold">
+                    ILS
+                </div>
+                <h1 class="text-3xl font-bold gradient-text">ILS Institute</h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button id="syncBtn" class="btn-primary px-6 py-2 rounded-full flex items-center space-x-2">
+                    <i class="fas fa-sync-alt"></i>
+                    <span>Sync Data</span>
+                </button>
+                <div class="relative group">
+                    <button class="w-10 h-10 rounded-full bg-[#1a1a2e] flex items-center justify-center">
+                        <i class="fas fa-user"></i>
+                    </button>
+                    <div class="absolute right-0 mt-2 w-48 bg-[#1a1a2e] rounded-md shadow-lg py-1 z-50 hidden group-hover:block">
+                        <a href="#" class="block px-4 py-2 text-sm hover:bg-[#ff2d55]">Profile</a>
+                        <a href="#" class="block px-4 py-2 text-sm hover:bg-[#ff2d55]">Settings</a>
+                        <a href="#" class="block px-4 py-2 text-sm hover:bg-[#ff2d55]">Logout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto py-8 px-4">
+        <div class="flex flex-col lg:flex-row gap-8">
+            <!-- Left Sidebar -->
+            <div class="w-full lg:w-1/4 space-y-6">
+                <!-- Add New Record Card -->
+                <div class="card p-6">
+                    <h2 class="text-xl font-bold mb-4 text-[#ff2d55]">Add New Record</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Student Name</label>
+                            <input type="text" id="studentName" class="w-full input-field px-4 py-2 rounded-lg" placeholder="Enter student name">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Student ID</label>
+                            <input type="text" id="studentId" class="w-full input-field px-4 py-2 rounded-lg" placeholder="Enter student ID">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Class</label>
+                            <select id="studentClass" class="w-full input-field px-4 py-2 rounded-lg">
+                                <option value="" disabled selected>Select class</option>
+                                <option value="Class 1">Class 1</option>
+                                <option value="Class 2">Class 2</option>
+                                <option value="Class 3">Class 3</option>
+                                <option value="Class 4">Class 4</option>
+                                <option value="Class 5">Class 5</option>
+                                <option value="Class 6">Class 6</option>
+                                <option value="Class 7">Class 7</option>
+                                <option value="Class 8">Class 8</option>
+                                <option value="Class 9">Class 9</option>
+                                <option value="Class 10">Class 10</option>
+                                <option value="Class 11">Class 11</option>
+                                <option value="Class 12">Class 12</option>
+                                <option value="Advanced">Advanced</option>
+                                <option value="Intermediate">Intermediate</option>
+                                <option value="Beginner">Beginner</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Level</label>
+                            <select id="examLevel" class="w-full input-field px-4 py-2 rounded-lg">
+                                <option value="Term 1">Term 1</option>
+                                <option value="Test 2">Test 2</option>
+                                <option value="Mid Exam">Mid Exam</option>
+                                <option value="Final Exam">Final Exam</option>
+                                <option value="Practice Test">Practice Test</option>
+                                <option value="Quiz">Quiz</option>
+                                <option value="Assignment">Assignment</option>
+                                <option value="Project">Project</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Score/Grade</label>
+                            <input type="text" id="studentScore" class="w-full input-field px-4 py-2 rounded-lg" placeholder="Enter score or grade">
+                        </div>
+                        <button id="addRecordBtn" class="btn-primary w-full py-2 rounded-lg flex items-center justify-center space-x-2">
+                            <i class="fas fa-plus"></i>
+                            <span>Add Record</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Import/Export Card -->
+                <div class="card p-6">
+                    <h2 class="text-xl font-bold mb-4 text-[#1e90ff]">Data Management</h2>
+                    <div class="space-y-4">
+                        <div class="flex flex-col space-y-2">
+                            <label class="text-sm font-medium">Import Data</label>
+                            <div class="flex items-center space-x-2">
+                                <input type="file" id="fileInput" class="hidden" accept=".xlsx,.xls,.csv">
+                                <button id="importBtn" class="btn-secondary flex-1 py-2 rounded-lg flex items-center justify-center space-x-2">
+                                    <i class="fas fa-file-import"></i>
+                                    <span>Choose File</span>
+                                </button>
+                            </div>
+                            <small class="text-xs opacity-70">Supports Excel files (.xlsx, .xls, .csv)</small>
+                        </div>
+                        <div class="flex flex-col space-y-2">
+                            <label class="text-sm font-medium">Export Data</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button id="exportExcelBtn" class="btn-secondary py-2 rounded-lg flex items-center justify-center space-x-2">
+                                    <i class="fas fa-file-excel"></i>
+                                    <span>Excel</span>
+                                </button>
+                                <button id="exportCSVBtn" class="btn-secondary py-2 rounded-lg flex items-center justify-center space-x-2">
+                                    <i class="fas fa-file-csv"></i>
+                                    <span>CSV</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistics Card -->
+                <div class="card p-6">
+                    <h2 class="text-xl font-bold mb-4 text-[#ff2d55]">Statistics</h2>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm">Total Records:</span>
+                            <span id="totalRecords" class="font-bold text-[#1e90ff]">0</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm">Highest Score:</span>
+                            <span id="highestScore" class="font-bold text-[#ff2d55]">-</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm">Average Score:</span>
+                            <span id="averageScore" class="font-bold text-[#1e90ff]">-</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm">Classes Count:</span>
+                            <span id="classesCount" class="font-bold text-[#1e90ff]">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Table Area -->
+            <div class="w-full lg:w-3/4">
+                <div class="card p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold gradient-text">Exam Results Dashboard</h2>
+                        <div class="flex space-x-2">
+                            <div class="relative">
+                                <input type="text" id="searchInput" placeholder="Search..." class="input-field px-4 py-2 rounded-lg pl-10">
+                                <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                            </div>
+                            <select id="filterLevel" class="input-field px-4 py-2 rounded-lg">
+                                <option value="all">All Levels</option>
+                                <option value="Term 1">Term 1</option>
+                                <option value="Test 2">Test 2</option>
+                                <option value="Mid Exam">Mid Exam</option>
+                                <option value="Final Exam">Final Exam</option>
+                                <option value="Practice Test">Practice Test</option>
+                                <option value="Quiz">Quiz</option>
+                                <option value="Assignment">Assignment</option>
+                                <option value="Project">Project</option>
+                            </select>
+                            <select id="filterClass" class="input-field px-4 py-2 rounded-lg">
+                                <option value="all">All Classes</option>
+                                <option value="Class 1">Class 1</option>
+                                <option value="Class 2">Class 2</option>
+                                <option value="Class 3">Class 3</option>
+                                <option value="Class 4">Class 4</option>
+                                <option value="Class 5">Class 5</option>
+                                <option value="Class 6">Class 6</option>
+                                <option value="Class 7">Class 7</option>
+                                <option value="Class 8">Class 8</option>
+                                <option value="Class 9">Class 9</option>
+                                <option value="Class 10">Class 10</option>
+                                <option value="Class 11">Class 11</option>
+                                <option value="Class 12">Class 12</option>
+                                <option value="Advanced">Advanced</option>
+                                <option value="Intermediate">Intermediate</option>
+                                <option value="Beginner">Beginner</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="table-container rounded-lg overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="table-header text-white">
+                                    <th class="px-6 py-3 text-left">Student Name</th>
+                                    <th class="px-6 py-3 text-left">ID</th>
+                                    <th class="px-6 py-3 text-left">Class</th>
+                                    <th class="px-6 py-3 text-left">Level</th>
+                                    <th class="px-6 py-3 text-left">Score/Grade</th>
+                                    <th class="px-6 py-3 text-left">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resultsTableBody" class="divide-y divide-gray-700">
+                                <!-- Data will be loaded here -->
+                                <tr>
+                                    <td colspan="6" class="px-6 py-4 text-center text-gray-400">Loading data...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="flex justify-between items-center mt-4">
+                        <div class="text-sm text-gray-400">
+                            Showing <span id="showingFrom">0</span> to <span id="showingTo">0</span> of <span id="totalEntries">0</span> entries
+                        </div>
+                        <div class="flex space-x-2">
+                            <button id="prevPageBtn" class="btn-secondary px-4 py-1 rounded-lg disabled:opacity-50" disabled>
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <div class="flex items-center">
+                                <span id="currentPage" class="px-3">1</span>
+                            </div>
+                            <button id="nextPageBtn" class="btn-secondary px-4 py-1 rounded-lg disabled:opacity-50" disabled>
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Floating Action Button -->
+    <div class="fixed bottom-8 right-8">
+        <button id="fabBtn" class="w-16 h-16 rounded-full gradient-bg text-white text-2xl shadow-lg flex items-center justify-center pulse">
+            <i class="fas fa-bolt"></i>
+        </button>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="card p-6 w-full max-w-md">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-[#1e90ff]">Edit Record</h3>
+                <button id="closeEditModal" class="text-gray-400 hover:text-white">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <input type="hidden" id="editRecordId">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Student Name</label>
+                    <input type="text" id="editStudentName" class="w-full input-field px-4 py-2 rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Student ID</label>
+                    <input type="text" id="editStudentId" class="w-full input-field px-4 py-2 rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Class</label>
+                    <select id="editStudentClass" class="w-full input-field px-4 py-2 rounded-lg">
+                        <option value="Class 1">Class 1</option>
+                        <option value="Class 2">Class 2</option>
+                        <option value="Class 3">Class 3</option>
+                        <option value="Class 4">Class 4</option>
+                        <option value="Class 5">Class 5</option>
+                        <option value="Class 6">Class 6</option>
+                        <option value="Class 7">Class 7</option>
+                        <option value="Class 8">Class 8</option>
+                        <option value="Class 9">Class 9</option>
+                        <option value="Class 10">Class 10</option>
+                        <option value="Class 11">Class 11</option>
+                        <option value="Class 12">Class 12</option>
+                        <option value="Advanced">Advanced</option>
+                        <option value="Intermediate">Intermediate</option>
+                        <option value="Beginner">Beginner</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Level</label>
+                    <select id="editExamLevel" class="w-full input-field px-4 py-2 rounded-lg">
+                        <option value="Term 1">Term 1</option>
+                        <option value="Test 2">Test 2</option>
+                        <option value="Mid Exam">Mid Exam</option>
+                        <option value="Final Exam">Final Exam</option>
+                        <option value="Practice Test">Practice Test</option>
+                        <option value="Quiz">Quiz</option>
+                        <option value="Assignment">Assignment</option>
+                        <option value="Project">Project</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Score/Grade</label>
+                    <input type="text" id="editStudentScore" class="w-full input-field px-4 py-2 rounded-lg">
+                </div>
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button id="cancelEditBtn" class="btn-secondary px-6 py-2 rounded-lg">Cancel</button>
+                    <button id="saveEditBtn" class="btn-primary px-6 py-2 rounded-lg">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-[#1a1a2e] text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-3 hidden z-50">
+        <i id="toastIcon" class="fas fa-check-circle text-[#1e90ff]"></i>
+        <span id="toastMessage">Operation completed successfully</span>
+    </div>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCBQMVj3pp_EjaAj6pTiG32xRBB7eVYPKM",
+            authDomain: "eauils.firebaseapp.com",
+            projectId: "eauils",
+            storageBucket: "eauils.firebasestorage.app",
+            messagingSenderId: "318437093898",
+            appId: "1:318437093898:web:9458db63b467f45887e5f3",
+            measurementId: "G-X9NHX0N46R"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        
+        // DOM Elements
+        const resultsTableBody = document.getElementById('resultsTableBody');
+        const addRecordBtn = document.getElementById('addRecordBtn');
+        const importBtn = document.getElementById('importBtn');
+        const fileInput = document.getElementById('fileInput');
+        const exportExcelBtn = document.getElementById('exportExcelBtn');
+        const exportCSVBtn = document.getElementById('exportCSVBtn');
+        const searchInput = document.getElementById('searchInput');
+        const filterLevel = document.getElementById('filterLevel');
+        const filterClass = document.getElementById('filterClass');
+        const syncBtn = document.getElementById('syncBtn');
+        const fabBtn = document.getElementById('fabBtn');
+        const editModal = document.getElementById('editModal');
+        const closeEditModal = document.getElementById('closeEditModal');
+        const cancelEditBtn = document.getElementById('cancelEditBtn');
+        const saveEditBtn = document.getElementById('saveEditBtn');
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toastMessage');
+        const toastIcon = document.getElementById('toastIcon');
+
+        // Pagination variables
+        let currentPage = 1;
+        const recordsPerPage = 10;
+        let allRecords = [];
+        let filteredRecords = [];
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // Add new record
+            addRecordBtn.addEventListener('click', addNewRecord);
+            
+            // Import/export
+            importBtn.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', handleFileImport);
+            exportExcelBtn.addEventListener('click', exportToExcel);
+            exportCSVBtn.addEventListener('click', exportToCSV);
+            
+            // Search and filter
+            searchInput.addEventListener('input', filterRecords);
+            filterLevel.addEventListener('change', filterRecords);
+            filterClass.addEventListener('change', filterRecords);
+            
+            // Sync data
+            syncBtn.addEventListener('click', loadData);
+            
+            // FAB button
+            fabBtn.addEventListener('click', () => {
+                showToast('Quick actions coming soon!', 'info');
+            });
+            
+            // Edit modal
+            closeEditModal.addEventListener('click', () => editModal.classList.add('hidden'));
+            cancelEditBtn.addEventListener('click', () => editModal.classList.add('hidden'));
+            saveEditBtn.addEventListener('click', saveEditedRecord);
+        }
+
+        // Load data from Firestore
+        function loadData() {
+            syncBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Loading...</span>';
+            
+            db.collection('examResults').get()
+                .then((querySnapshot) => {
+                    allRecords = [];
+                    querySnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        data.id = doc.id;
+                        allRecords.push(data);
+                    });
+                    
+                    updateStatistics();
+                    filterRecords();
+                    syncBtn.innerHTML = '<i class="fas fa-sync-alt"></i><span>Sync Data</span>';
+                    showToast('Data loaded successfully!', 'success');
+                })
+                .catch((error) => {
+                    console.error("Error loading data: ", error);
+                    syncBtn.innerHTML = '<i class="fas fa-sync-alt"></i><span>Sync Data</span>';
+                    showToast('Failed to load data!', 'error');
+                });
+        }
+
+        // Add new record to Firestore
+        function addNewRecord() {
+            const studentName = document.getElementById('studentName').value.trim();
+            const studentId = document.getElementById('studentId').value.trim();
+            const studentClass = document.getElementById('studentClass').value;
+            const examLevel = document.getElementById('examLevel').value;
+            const studentScore = document.getElementById('studentScore').value.trim();
+            
+            if (!studentName || !studentId || !studentClass || !studentScore) {
+                showToast('Please fill all fields!', 'error');
+                return;
+            }
+            
+            addRecordBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Adding...</span>';
+            
+            const newRecord = {
+                studentName,
+                studentId,
+                studentClass,
+                examLevel,
+                studentScore,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            db.collection('examResults').add(newRecord)
+                .then(() => {
+                    document.getElementById('studentName').value = '';
+                    document.getElementById('studentId').value = '';
+                    document.getElementById('studentClass').value = '';
+                    document.getElementById('studentScore').value = '';
+                    
+                    addRecordBtn.innerHTML = '<i class="fas fa-plus"></i><span>Add Record</span>';
+                    showToast('Record added successfully!', 'success');
+                    loadData();
+                })
+                .catch((error) => {
+                    console.error("Error adding document: ", error);
+                    addRecordBtn.innerHTML = '<i class="fas fa-plus"></i><span>Add Record</span>';
+                    showToast('Failed to add record!', 'error');
+                });
+        }
+
+        // Handle file import
+        function handleFileImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                
+                // Get first sheet
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                
+                // Convert to JSON
+                const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+                
+                if (jsonData.length === 0) {
+                    showToast('No data found in the file!', 'error');
+                    return;
+                }
+                
+                importBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Importing...</span>';
+                
+                // Prepare batch write
+                const batch = db.batch();
+                const collectionRef = db.collection('examResults');
+                
+                jsonData.forEach((row) => {
+                    // Validate required fields
+                    if (row['Student Name'] && row['Student ID'] && row['Class'] && row['Level'] && row['Score/Grade']) {
+                        const newRecord = {
+                            studentName: row['Student Name'],
+                            studentId: row['Student ID'],
+                            studentClass: row['Class'],
+                            examLevel: row['Level'],
+                            studentScore: row['Score/Grade'],
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        };
+                        
+                        const newDocRef = collectionRef.doc();
+                        batch.set(newDocRef, newRecord);
+                    }
+                });
+                
+                // Commit batch
+                batch.commit()
+                    .then(() => {
+                        importBtn.innerHTML = '<i class="fas fa-file-import"></i><span>Choose File</span>';
+                        showToast(`Imported ${jsonData.length} records successfully!`, 'success');
+                        loadData();
+                        fileInput.value = ''; // Reset file input
+                    })
+                    .catch((error) => {
+                        console.error("Error importing data: ", error);
+                        importBtn.innerHTML = '<i class="fas fa-file-import"></i><span>Choose File</span>';
+                        showToast('Failed to import data!', 'error');
+                        fileInput.value = ''; // Reset file input
+                    });
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Export to Excel
+        function exportToExcel() {
+            if (allRecords.length === 0) {
+                showToast('No data to export!', 'error');
+                return;
+            }
+            
+            exportExcelBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Exporting...</span>';
+            
+            // Prepare data for export
+            const exportData = allRecords.map(record => ({
+                'Student Name': record.studentName,
+                'Student ID': record.studentId,
+                'Class': record.studentClass,
+                'Level': record.examLevel,
+                'Score/Grade': record.studentScore
+            }));
+            
+            // Create worksheet
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            
+            // Create workbook
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Exam Results");
+            
+            // Export to file
+            XLSX.writeFile(wb, `ILS_Exam_Results_${new Date().toISOString().slice(0,10)}.xlsx`);
+            
+            exportExcelBtn.innerHTML = '<i class="fas fa-file-excel"></i><span>Excel</span>';
+            showToast('Exported to Excel successfully!', 'success');
+        }
+
+        // Export to CSV
+        function exportToCSV() {
+            if (allRecords.length === 0) {
+                showToast('No data to export!', 'error');
+                return;
+            }
+            
+            exportCSVBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Exporting...</span>';
+            
+            // Prepare data for export
+            const exportData = allRecords.map(record => ({
+                'Student Name': record.studentName,
+                'Student ID': record.studentId,
+                'Class': record.studentClass,
+                'Level': record.examLevel,
+                'Score/Grade': record.studentScore
+            }));
+            
+            // Create worksheet
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            
+            // Convert to CSV
+            const csv = XLSX.utils.sheet_to_csv(ws);
+            
+            // Create blob and download
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            saveAs(blob, `ILS_Exam_Results_${new Date().toISOString().slice(0,10)}.csv`);
+            
+            exportCSVBtn.innerHTML = '<i class="fas fa-file-csv"></i><span>CSV</span>';
+            showToast('Exported to CSV successfully!', 'success');
+        }
+
+        // Filter records based on search, level filter, and class filter
+        function filterRecords() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const levelFilter = filterLevel.value;
+            const classFilter = filterClass.value;
+            
+            filteredRecords = allRecords.filter(record => {
+                const matchesSearch = 
+                    record.studentName.toLowerCase().includes(searchTerm) ||
+                    record.studentId.toLowerCase().includes(searchTerm) ||
+                    record.studentClass.toLowerCase().includes(searchTerm) ||
+                    record.studentScore.toLowerCase().includes(searchTerm);
+                
+                const matchesLevel = levelFilter === 'all' || record.examLevel === levelFilter;
+                const matchesClass = classFilter === 'all' || record.studentClass === classFilter;
+                
+                return matchesSearch && matchesLevel && matchesClass;
+            });
+            
+            currentPage = 1;
+            renderTable();
+            updatePagination();
+        }
+
+        // Render table with pagination
+        function renderTable() {
+            const startIndex = (currentPage - 1) * recordsPerPage;
+            const endIndex = startIndex + recordsPerPage;
+            const paginatedRecords = filteredRecords.slice(startIndex, endIndex);
+            
+            if (paginatedRecords.length === 0) {
+                resultsTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="px-6 py-4 text-center text-gray-400">No records found</td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            let tableHTML = '';
+            
+            paginatedRecords.forEach((record) => {
+                tableHTML += `
+                    <tr class="table-row hover:bg-[#1a1a2e] transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap">${record.studentName}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${record.studentId}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 rounded-full text-xs bg-[#1e90ff] bg-opacity-20 text-[#1e90ff]">
+                                ${record.studentClass}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 rounded-full text-xs ${
+                                record.examLevel === 'Final Exam' ? 'bg-[#ff2d55] bg-opacity-20 text-[#ff2d55]' : 
+                                record.examLevel === 'Mid Exam' ? 'bg-[#1e90ff] bg-opacity-20 text-[#1e90ff]' : 
+                                'bg-gray-700 bg-opacity-20 text-gray-300'
+                            }">
+                                ${record.examLevel}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap font-medium ${
+                            parseInt(record.studentScore) >= 80 ? 'text-[#1e90ff]' : 
+                            parseInt(record.studentScore) >= 50 ? 'text-white' : 'text-[#ff2d55]'
+                        }">
+                            ${record.studentScore}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex space-x-2">
+                                <button onclick="editRecord('${record.id}')" class="w-8 h-8 rounded-full bg-[#1e90ff] bg-opacity-20 text-[#1e90ff] flex items-center justify-center hover:bg-opacity-30 transition-all">
+                                    <i class="fas fa-edit text-xs"></i>
+                                </button>
+                                <button onclick="deleteRecord('${record.id}')" class="w-8 h-8 rounded-full bg-[#ff2d55] bg-opacity-20 text-[#ff2d55] flex items-center justify-center hover:bg-opacity-30 transition-all">
+                                    <i class="fas fa-trash-alt text-xs"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            resultsTableBody.innerHTML = tableHTML;
+        }
+
+        // Update pagination controls
+        function updatePagination() {
+            const totalPages = Math.ceil(filteredRecords.length / recordsPerPage);
+            document.getElementById('currentPage').textContent = currentPage;
+            document.getElementById('totalEntries').textContent = filteredRecords.length;
+            
+            const showingFrom = (currentPage - 1) * recordsPerPage + 1;
+            const showingTo = Math.min(currentPage * recordsPerPage, filteredRecords.length);
+            
+            document.getElementById('showingFrom').textContent = showingFrom;
+            document.getElementById('showingTo').textContent = showingTo;
+            
+            // Enable/disable pagination buttons
+            document.getElementById('prevPageBtn').disabled = currentPage === 1;
+            document.getElementById('nextPageBtn').disabled = currentPage === totalPages || totalPages === 0;
+        }
+
+        // Go to previous page
+        function prevPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                renderTable();
+                updatePagination();
+            }
+        }
+
+        // Go to next page
+        function nextPage() {
+            const totalPages = Math.ceil(filteredRecords.length / recordsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderTable();
+                updatePagination();
+            }
+        }
+
+        // Add event listeners for pagination
+        document.getElementById('prevPageBtn').addEventListener('click', prevPage);
+        document.getElementById('nextPageBtn').addEventListener('click', nextPage);
+
+        // Edit record
+        function editRecord(recordId) {
+            const record = allRecords.find(r => r.id === recordId);
+            if (!record) return;
+            
+            document.getElementById('editRecordId').value = record.id;
+            document.getElementById('editStudentName').value = record.studentName;
+            document.getElementById('editStudentId').value = record.studentId;
+            document.getElementById('editStudentClass').value = record.studentClass;
+            document.getElementById('editExamLevel').value = record.examLevel;
+            document.getElementById('editStudentScore').value = record.studentScore;
+            
+            editModal.classList.remove('hidden');
+        }
+
+        // Save edited record
+        function saveEditedRecord() {
+            const recordId = document.getElementById('editRecordId').value;
+            const studentName = document.getElementById('editStudentName').value.trim();
+            const studentId = document.getElementById('editStudentId').value.trim();
+            const studentClass = document.getElementById('editStudentClass').value;
+            const examLevel = document.getElementById('editExamLevel').value;
+            const studentScore = document.getElementById('editStudentScore').value.trim();
+            
+            if (!studentName || !studentId || !studentClass || !studentScore) {
+                showToast('Please fill all fields!', 'error');
+                return;
+            }
+            
+            saveEditBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Saving...</span>';
+            
+            db.collection('examResults').doc(recordId).update({
+                studentName,
+                studentId,
+                studentClass,
+                examLevel,
+                studentScore,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            })
+            .then(() => {
+                editModal.classList.add('hidden');
+                saveEditBtn.innerHTML = '<i class="fas fa-save"></i><span>Save Changes</span>';
+                showToast('Record updated successfully!', 'success');
+                loadData();
+            })
+            .catch((error) => {
+                console.error("Error updating document: ", error);
+                saveEditBtn.innerHTML = '<i class="fas fa-save"></i><span>Save Changes</span>';
+                showToast('Failed to update record!', 'error');
+            });
+        }
+
+        // Delete record
+        function deleteRecord(recordId) {
+            if (!confirm('Are you sure you want to delete this record?')) return;
+            
+            db.collection('examResults').doc(recordId).delete()
+                .then(() => {
+                    showToast('Record deleted successfully!', 'success');
+                    loadData();
+                })
+                .catch((error) => {
+                    console.error("Error deleting document: ", error);
+                    showToast('Failed to delete record!', 'error');
+                });
+        }
+
+        // Update statistics
+        function updateStatistics() {
+            document.getElementById('totalRecords').textContent = allRecords.length;
+            
+            if (allRecords.length > 0) {
+                // Calculate highest score
+                const scores = allRecords.map(r => parseInt(r.studentScore)).filter(score => !isNaN(score));
+                if (scores.length > 0) {
+                    const highest = Math.max(...scores);
+                    const average = (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(2);
+                    
+                    document.getElementById('highestScore').textContent = highest;
+                    document.getElementById('averageScore').textContent = average;
+                }
+                
+                // Calculate unique classes count
+                const uniqueClasses = [...new Set(allRecords.map(record => record.studentClass))];
+                document.getElementById('classesCount').textContent = uniqueClasses.length;
+            }
+        }
+
+        // Show toast notification
+        function showToast(message, type) {
+            toastMessage.textContent = message;
+            
+            // Set icon and color based on type
+            switch(type) {
+                case 'success':
+                    toastIcon.className = 'fas fa-check-circle text-[#1e90ff]';
+                    break;
+                case 'error':
+                    toastIcon.className = 'fas fa-times-circle text-[#ff2d55]';
+                    break;
+                case 'info':
+                    toastIcon.className = 'fas fa-info-circle text-[#1e90ff]';
+                    break;
+                default:
+                    toastIcon.className = 'fas fa-check-circle text-[#1e90ff]';
+            }
+            
+            toast.classList.remove('hidden');
+            
+            // Hide after 3 seconds
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
