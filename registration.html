@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Registration - Gourmet POS System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-storage-compat.js"></script>
+    <style>
+        /* Bubble animation */
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) translateX(0);
+            }
+            25% {
+                transform: translateY(-20px) translateX(10px);
+            }
+            50% {
+                transform: translateY(-10px) translateX(-10px);
+            }
+            75% {
+                transform: translateY(-20px) translateX(0);
+            }
+        }
+        
+        .bubble {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            filter: blur(5px);
+            animation: float 8s ease-in-out infinite;
+            z-index: -1;
+        }
+        
+        /* Glass effect */
+        .glass-effect {
+            background: rgba(15, 15, 25, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        
+        /* Neon glow */
+        .glow {
+            text-shadow: 0 0 10px rgba(255, 200, 0, 0.8);
+        }
+        
+        /* Floating elements */
+        .float {
+            transition: all 0.3s ease;
+        }
+        
+        .float:hover {
+            transform: translateY(-5px);
+        }
+        
+        /* Tab content animation */
+        .tab-content {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Scrollbar styling */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        
+        .custom-scroll::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+        }
+        
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+        }
+        
+        /* Gradient text */
+        .gradient-text {
+            background: linear-gradient(90deg, #f59e0b, #fbbf24, #f59e0b);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            background-size: 200% 200%;
+            animation: gradient 2s ease infinite;
+        }
+        
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        /* Shimmer effect for buttons */
+        @keyframes shimmer {
+            0% { opacity: 0.3; }
+            50% { opacity: 0.7; }
+            100% { opacity: 0.3; }
+        }
+        
+        .shimmer {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .shimmer:after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            animation: shimmer 2s infinite;
+        }
+        
+        /* Custom checkbox */
+        .custom-checkbox input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+        
+        .custom-checkbox .checkmark {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 20px;
+            width: 20px;
+            background-color: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        
+        .custom-checkbox:hover input ~ .checkmark {
+            background-color: rgba(255,255,255,0.2);
+        }
+        
+        .custom-checkbox input:checked ~ .checkmark {
+            background-color: #f59e0b;
+            border-color: #f59e0b;
+        }
+        
+        .custom-checkbox .checkmark:after {
+            content: "";
+            position: absolute;
+            display: none;
+        }
+        
+        .custom-checkbox input:checked ~ .checkmark:after {
+            display: block;
+        }
+        
+        .custom-checkbox .checkmark:after {
+            left: 7px;
+            top: 3px;
+            width: 5px;
+            height: 10px;
+            border: solid black;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+        
+        /* Form styling */
+        .form-container {
+            animation: slideUp 0.5s ease-in-out;
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Custom file upload */
+        .file-input {
+            position: absolute;
+            width: 0.1px;
+            height: 0.1px;
+            opacity: 0;
+            overflow: hidden;
+            z-index: -1;
+        }
+        
+        .file-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        /* Password visibility toggle */
+        .password-toggle {
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        
+        .password-toggle:hover {
+            color: #f59e0b;
+        }
+        
+        /* Progress bar */
+        .progress-bar {
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f59e0b, #fbbf24);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+        
+        /* Form steps animation */
+        .form-step {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        .form-step.active {
+            display: block;
+        }
+        
+        /* Logo preview */
+        .logo-preview {
+            transition: all 0.3s ease;
+            border: 2px dashed rgba(255,255,255,0.3);
+        }
+        
+        .logo-preview:hover {
+            border-color: #f59e0b;
+        }
+        
+        .logo-preview.has-image {
+            border-style: solid;
+        }
+    </style>
+</head>
+<body class="bg-[url('https://t3.ftcdn.net/jpg/08/30/36/24/360_F_830362443_3P82WDlEppAJDZp1n0o6MZMTyiq69kwp.jpg')] bg-cover bg-center min-h-screen overflow-x-hidden">
+    <!-- Bubble animations -->
+    <div class="bubble" style="width: 150px; height: 150px; top: 10%; left: 5%; animation-delay: 0s;"></div>
+    <div class="bubble" style="width: 120px; height: 120px; top: 70%; left: 10%; animation-delay: 1s;"></div>
+    <div class="bubble" style="width: 80px; height: 80px; top: 30%; right: 15%; animation-delay: 2s;"></div>
+    <div class="bubble" style="width: 100px; height: 100px; top: 80%; right: 10%; animation-delay: 3s;"></div>
+    <div class="bubble" style="width: 60px; height: 60px; top: 50%; left: 20%; animation-delay: 4s;"></div>
+
+    <!-- Registration Container -->
+    <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div class="glass-effect rounded-2xl p-8 w-full max-w-2xl form-container border border-gray-700">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-white mb-2">servelQ <span class="gradient-text">POS</span></h2>
+                <p class="text-gray-400">Restaurant Registration</p>
+            </div>
+            
+            <!-- Progress Bar -->
+            <div class="mb-8">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm text-gray-300">Step <span id="current-step">1</span> of 3</span>
+                    <span class="text-sm text-gray-300" id="step-title">Restaurant Information</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill" style="width: 33%"></div>
+                </div>
+            </div>
+            
+            <!-- Registration Form -->
+            <form id="registration-form" class="space-y-6">
+                <!-- Step 1: Restaurant Information -->
+                <div class="form-step active" id="step-1">
+                    <div>
+                        <label class="block text-gray-300 mb-2">Restaurant Name <span class="text-red-400">*</span></label>
+                        <input type="text" id="restaurant-name" required class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-all" placeholder="Enter your restaurant name">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-gray-300 mb-2">Contact Phone <span class="text-red-400">*</span></label>
+                        <input type="tel" id="contact-phone" required class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-all" placeholder="+1 (555) 123-4567">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-gray-300 mb-2">Restaurant Logo (Optional)</label>
+                        <div class="flex items-center space-x-4">
+                            <input type="file" id="restaurant-logo" accept="image/*" class="file-input">
+                            <label for="restaurant-logo" class="file-label bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-3 text-white hover:border-yellow-400 transition-all cursor-pointer flex-1">
+                                <i class="fas fa-upload mr-2"></i> Choose File
+                            </label>
+                            <div class="logo-preview w-16 h-16 rounded-lg bg-gray-800 bg-opacity-30 flex items-center justify-center overflow-hidden">
+                                <i class="fas fa-image text-gray-600"></i>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-2">Recommended: 200x200px, PNG or JPG format</p>
+                    </div>
+                    
+                    <div class="flex justify-end mt-8">
+                        <button type="button" onclick="nextStep(2)" class="bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 text-white py-2 px-6 rounded-lg font-medium flex items-center transition-all float hover:shadow-lg hover:shadow-yellow-500/20">
+                            Next <i class="fas fa-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Step 2: Account Details -->
+                <div class="form-step" id="step-2">
+                    <div>
+                        <label class="block text-gray-300 mb-2">Email Address <span class="text-red-400">*</span></label>
+                        <input type="email" id="email" required class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-all" placeholder="your@email.com">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-gray-300 mb-2">Password <span class="text-red-400">*</span></label>
+                        <div class="relative">
+                            <input type="password" id="password" required class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-all pr-10" placeholder="••••••••">
+                            <span class="absolute inset-y-0 right-0 pr-3 flex items-center password-toggle" onclick="togglePasswordVisibility('password')">
+                                <i class="fas fa-eye text-gray-400"></i>
+                            </span>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-2">Minimum 8 characters with at least one number and one special character</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-gray-300 mb-2">Confirm Password <span class="text-red-400">*</span></label>
+                        <div class="relative">
+                            <input type="password" id="confirm-password" required class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-all pr-10" placeholder="••••••••">
+                            <span class="absolute inset-y-0 right-0 pr-3 flex items-center password-toggle" onclick="togglePasswordVisibility('confirm-password')">
+                                <i class="fas fa-eye text-gray-400"></i>
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between mt-8">
+                        <button type="button" onclick="prevStep(1)" class="bg-gray-700 hover:bg-gray-600 text-white py-2 px-6 rounded-lg font-medium flex items-center transition-all border border-gray-600 hover:border-gray-500">
+                            <i class="fas fa-arrow-left mr-2"></i> Back
+                        </button>
+                        <button type="button" onclick="nextStep(3)" class="bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 text-white py-2 px-6 rounded-lg font-medium flex items-center transition-all float hover:shadow-lg hover:shadow-yellow-500/20">
+                            Next <i class="fas fa-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Step 3: Terms & Completion -->
+                <div class="form-step" id="step-3">
+                    <div class="bg-gray-800 bg-opacity-30 rounded-lg p-4 border border-gray-700">
+                        <h3 class="text-lg font-bold text-white mb-3 flex items-center">
+                            <i class="fas fa-file-contract mr-2 text-yellow-400"></i>
+                            Terms & Conditions
+                        </h3>
+                        <div class="text-gray-300 text-sm custom-scroll" style="max-height: 150px; overflow-y: auto;">
+                            <p class="mb-2">By registering for servelQ POS, you agree to the following terms:</p>
+                            <ul class="list-disc pl-5 space-y-1">
+                                <li>You are the authorized representative of the restaurant</li>
+                                <li>You will maintain accurate and current information</li>
+                                <li>You are responsible for the security of your account credentials</li>
+                                <li>You will comply with all applicable laws and regulations</li>
+                                <li>We may suspend service for violations of our terms</li>
+                                <li>Pricing and features are subject to change with notice</li>
+                            </ul>
+                            <p class="mt-3">For our complete terms of service, please visit our website.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start mt-4">
+                        <label class="custom-checkbox flex items-start cursor-pointer">
+                            <input type="checkbox" id="terms-agreement" class="mt-1">
+                            <span class="checkmark rounded mr-3 mt-1"></span>
+                            <span class="text-gray-300 text-sm">I agree to the terms and conditions and privacy policy</span>
+                        </label>
+                    </div>
+                    
+                    <div class="flex items-start mt-4">
+                        <label class="custom-checkbox flex items-start cursor-pointer">
+                            <input type="checkbox" id="marketing-agreement" class="mt-1">
+                            <span class="checkmark rounded mr-3 mt-1"></span>
+                            <span class="text-gray-300 text-sm">I would like to receive updates and promotional offers</span>
+                        </label>
+                    </div>
+                    
+                    <div class="flex justify-between mt-8">
+                        <button type="button" onclick="prevStep(2)" class="bg-gray-700 hover:bg-gray-600 text-white py-2 px-6 rounded-lg font-medium flex items-center transition-all border border-gray-600 hover:border-gray-500">
+                            <i class="fas fa-arrow-left mr-2"></i> Back
+                        </button>
+                        <button type="submit" class="bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 text-white py-2 px-6 rounded-lg font-medium flex items-center transition-all float hover:shadow-lg hover:shadow-yellow-500/20">
+                            <i class="fas fa-check-circle mr-2"></i> Complete Registration
+                        </button>
+                    </div>
+                </div>
+            </form>
+            
+            <div id="registration-error" class="mt-4 text-red-400 text-center hidden"></div>
+            <div id="registration-success" class="mt-4 text-green-400 text-center hidden"></div>
+            
+            <p class="text-gray-400 text-sm text-center mt-6">
+                Already have an account? 
+                <a href="#" onclick="showLogin()" class="text-yellow-400 hover:text-yellow-300 transition-colors">Sign in here</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- Login Screen (Hidden Initially) -->
+    <div id="login-screen" class="fixed inset-0 flex items-center justify-center z-50 hidden">
+        <div class="glass-effect rounded-2xl p-8 w-full max-w-md form-container border border-gray-700">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-white mb-2">servelQ <span class="gradient-text">POS</span></h2>
+                <p class="text-gray-400">Restaurant Management System</p>
+            </div>
+            <form id="login-form" class="space-y-6">
+                <div>
+                    <label class="block text-gray-300 mb-2">Email Address</label>
+                    <input type="email" id="login-email" required class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-all" placeholder="your@email.com">
+                </div>
+                <div>
+                    <label class="block text-gray-300 mb-2">Password</label>
+                    <input type="password" id="login-password" required class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-all" placeholder="••••••••">
+                </div>
+                <button type="submit" class="w-full bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 text-white py-3 px-4 rounded-lg font-bold flex items-center justify-center transition-all float hover:shadow-lg hover:shadow-yellow-500/20">
+                    <i class="fas fa-sign-in-alt mr-2"></i> Login
+                </button>
+                <p class="text-gray-400 text-sm text-center">Contact support if you need account access</p>
+            </form>
+            <div id="login-error" class="mt-4 text-red-400 text-center hidden"></div>
+            
+            <p class="text-gray-400 text-sm text-center mt-6">
+                Don't have an account? 
+                <a href="#" onclick="showRegistration()" class="text-yellow-400 hover:text-yellow-300 transition-colors">Register here</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyD6w_yN-dVITdp08B2qetFAmF9_JfS45wo",
+            authDomain: "hagar-d1149.firebaseapp.com",
+            projectId: "hagar-d1149",
+            storageBucket: "hagar-d1149.appspot.com",
+            messagingSenderId: "415007683735",
+            appId: "1:415007683735:web:d56a9449324f75371ee5d2",
+            measurementId: "G-K4LZVPWZJ5"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+
+        // Current registration step
+        let currentStep = 1;
+        let restaurantLogoFile = null;
+
+        // Initialize the registration form
+        document.addEventListener('DOMContentLoaded', function() {
+            // Logo upload preview
+            document.getElementById('restaurant-logo').addEventListener('change', function(e) {
+                if (e.target.files && e.target.files[0]) {
+                    restaurantLogoFile = e.target.files[0];
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const preview = document.querySelector('.logo-preview');
+                        preview.innerHTML = '';
+                        const img = document.createElement('img');
+                        img.src = event.target.result;
+                        img.className = 'w-full h-full object-cover';
+                        preview.appendChild(img);
+                        preview.classList.add('has-image');
+                    }
+                    reader.readAsDataURL(e.target.files[0]);
+                }
+            });
+
+            // Registration form submission
+            document.getElementById('registration-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                registerRestaurant();
+            });
+
+            // Login form submission
+            document.getElementById('login-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const email = document.getElementById('login-email').value;
+                const password = document.getElementById('login-password').value;
+                
+                auth.signInWithEmailAndPassword(email, password)
+                    .then((userCredential) => {
+                        // Redirect to main app or show success
+                        showAlert('Login successful!', 'success');
+                        // In a real app, you would redirect to the main dashboard
+                    })
+                    .catch((error) => {
+                        document.getElementById('login-error').textContent = error.message;
+                        document.getElementById('login-error').classList.remove('hidden');
+                    });
+            });
+        });
+
+        // Step navigation functions
+        function nextStep(step) {
+            // Validate current step before proceeding
+            if (currentStep === 1 && !validateStep1()) {
+                return;
+            }
+            if (currentStep === 2 && !validateStep2()) {
+                return;
+            }
+            
+            document.getElementById(`step-${currentStep}`).classList.remove('active');
+            currentStep = step;
+            document.getElementById(`step-${currentStep}`).classList.add('active');
+            document.getElementById('current-step').textContent = currentStep;
+            
+            // Update progress bar
+            const progressPercent = (currentStep / 3) * 100;
+            document.getElementById('progress-fill').style.width = `${progressPercent}%`;
+            
+            // Update step title
+            const titles = {
+                1: 'Restaurant Information',
+                2: 'Account Details',
+                3: 'Terms & Completion'
+            };
+            document.getElementById('step-title').textContent = titles[currentStep];
+        }
+
+        function prevStep(step) {
+            document.getElementById(`step-${currentStep}`).classList.remove('active');
+            currentStep = step;
+            document.getElementById(`step-${currentStep}`).classList.add('active');
+            document.getElementById('current-step').textContent = currentStep;
+            
+            // Update progress bar
+            const progressPercent = (currentStep / 3) * 100;
+            document.getElementById('progress-fill').style.width = `${progressPercent}%`;
+            
+            // Update step title
+            const titles = {
+                1: 'Restaurant Information',
+                2: 'Account Details',
+                3: 'Terms & Completion'
+            };
+            document.getElementById('step-title').textContent = titles[currentStep];
+        }
+
+        // Form validation functions
+        function validateStep1() {
+            const restaurantName = document.getElementById('restaurant-name').value.trim();
+            const contactPhone = document.getElementById('contact-phone').value.trim();
+            
+            if (!restaurantName) {
+                showAlert('Restaurant name is required', 'error');
+                return false;
+            }
+            
+            if (!contactPhone) {
+                showAlert('Contact phone is required', 'error');
+                return false;
+            }
+            
+            // Basic phone validation (can be enhanced)
+            const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
+            if (!phoneRegex.test(contactPhone.replace(/[\s\(\)\-]/g, ''))) {
+                showAlert('Please enter a valid phone number', 'error');
+                return false;
+            }
+            
+            return true;
+        }
+
+        function validateStep2() {
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            
+            if (!email) {
+                showAlert('Email is required', 'error');
+                return false;
+            }
+            
+            // Basic email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showAlert('Please enter a valid email address', 'error');
+                return false;
+            }
+            
+            if (!password) {
+                showAlert('Password is required', 'error');
+                return false;
+            }
+            
+            // Password strength validation
+            if (password.length < 8) {
+                showAlert('Password must be at least 8 characters long', 'error');
+                return false;
+            }
+            
+            if (!/(?=.*[0-9])/.test(password)) {
+                showAlert('Password must contain at least one number', 'error');
+                return false;
+            }
+            
+            if (!/(?=.*[!@#$%^&*])/.test(password)) {
+                showAlert('Password must contain at least one special character', 'error');
+                return false;
+            }
+            
+            if (password !== confirmPassword) {
+                showAlert('Passwords do not match', 'error');
+                return false;
+            }
+            
+            return true;
+        }
+
+        // Restaurant registration function
+        function registerRestaurant() {
+            // Validate final step
+            if (!document.getElementById('terms-agreement').checked) {
+                showAlert('You must agree to the terms and conditions', 'error');
+                return;
+            }
+            
+            const restaurantName = document.getElementById('restaurant-name').value.trim();
+            const contactPhone = document.getElementById('contact-phone').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const marketingOptIn = document.getElementById('marketing-agreement').checked;
+            
+            // Show loading state
+            const submitBtn = document.querySelector('#registration-form button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Processing...';
+            submitBtn.disabled = true;
+            
+            // Create user account
+            auth.createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    const user = userCredential.user;
+                    
+                    // Upload logo if provided
+                    if (restaurantLogoFile) {
+                        const storageRef = storage.ref();
+                        const logoRef = storageRef.child(`restaurants/${user.uid}/logo/${restaurantLogoFile.name}`);
+                        
+                        return logoRef.put(restaurantLogoFile)
+                            .then(snapshot => snapshot.ref.getDownloadURL())
+                            .then(logoUrl => {
+                                return saveRestaurantData(user.uid, restaurantName, contactPhone, email, logoUrl, marketingOptIn);
+                            });
+                    } else {
+                        return saveRestaurantData(user.uid, restaurantName, contactPhone, email, null, marketingOptIn);
+                    }
+                })
+                .then(() => {
+                    showAlert('Registration successful! You can now login.', 'success');
+                    // Reset form
+                    document.getElementById('registration-form').reset();
+                    document.querySelector('.logo-preview').innerHTML = '<i class="fas fa-image text-gray-600"></i>';
+                    document.querySelector('.logo-preview').classList.remove('has-image');
+                    restaurantLogoFile = null;
+                    
+                    // Return to first step
+                    document.getElementById(`step-${currentStep}`).classList.remove('active');
+                    currentStep = 1;
+                    document.getElementById(`step-${currentStep}`).classList.add('active');
+                    document.getElementById('current-step').textContent = currentStep;
+                    document.getElementById('progress-fill').style.width = '33%';
+                    document.getElementById('step-title').textContent = 'Restaurant Information';
+                })
+                .catch((error) => {
+                    console.error("Registration error:", error);
+                    showAlert(error.message, 'error');
+                })
+                .finally(() => {
+                    // Restore button state
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                });
+        }
+
+        // Save restaurant data to Firestore
+        function saveRestaurantData(userId, name, phone, email, logoUrl, marketingOptIn) {
+            return db.collection("restaurants").doc(userId).set({
+                name: name,
+                contact: phone,
+                email: email,
+                logo: logoUrl || "",
+                marketingOptIn: marketingOptIn,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
+
+        // Utility functions
+        function togglePasswordVisibility(fieldId) {
+            const passwordField = document.getElementById(fieldId);
+            const toggleIcon = passwordField.nextElementSibling.querySelector('i');
+            
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordField.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
+
+        function showAlert(message, type) {
+            const alertDiv = type === 'error' ? 
+                document.getElementById('registration-error') : 
+                document.getElementById('registration-success');
+                
+            alertDiv.textContent = message;
+            alertDiv.classList.remove('hidden');
+            
+            // Hide after 5 seconds
+            setTimeout(() => {
+                alertDiv.classList.add('hidden');
+            }, 5000);
+        }
+
+        function showLogin() {
+            document.getElementById('login-screen').classList.remove('hidden');
+        }
+
+        function showRegistration() {
+            document.getElementById('login-screen').classList.add('hidden');
+        }
+
+        // Add custom animation styles
+        const style = document.createElement('style');
+        style.innerHTML = `
+            @keyframes slide-in {
+                from { transform: translateX(100%); }
+                to { transform: translateX(0); }
+            }
+            
+            @keyframes slide-out {
+                from { transform: translateX(0); }
+                to { transform: translateX(100%); }
+            }
+            
+            .animate-slide-in {
+                animation: slide-in 0.3s forwards;
+            }
+            
+            .animate-slide-out {
+                animation: slide-out 0.3s forwards;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

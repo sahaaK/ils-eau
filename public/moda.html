@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduTrack - Exam Results System</title>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+        
+        :root {
+            --primary: #4f46e5;
+            --secondary: #7c3aed;
+            --accent: #ec4899;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --light-bg: #f8fafc;
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.3);
+        }
+        
+        * {
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e7eb 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .glass-effect {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px rgba(79, 70, 229, 0.1);
+            border-radius: 16px;
+        }
+        
+        .glass-input {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(79, 70, 229, 0.2);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .glass-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            color: white;
+            box-shadow: 0 4px 6px rgba(79, 70, 229, 0.1);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px rgba(79, 70, 229, 0.2);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+        
+        .btn-primary::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0));
+            transform: translateX(-100%);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .btn-primary:hover::after {
+            transform: translateX(0);
+        }
+        
+        .table-row {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .table-row:hover {
+            background: rgba(79, 70, 229, 0.05);
+            transform: scale(1.005);
+        }
+        
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .toast.show {
+            transform: translateX(0);
+        }
+        
+        .loading-spinner {
+            border: 3px solid rgba(79, 70, 229, 0.2);
+            border-radius: 50%;
+            border-top: 3px solid var(--primary);
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(79, 70, 229, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(79, 70, 229, 0.1);
+            border-radius: 3px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 3px;
+        }
+        
+        .floating-bubbles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(124, 58, 237, 0.1));
+            animation: float linear infinite;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); }
+            100% { transform: translateY(-100vh) rotate(360deg); }
+        }
+        
+        /* Student Portal Styles */
+        .student-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.9));
+            border: 1px solid rgba(79, 70, 229, 0.2);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 6px rgba(79, 70, 229, 0.05);
+        }
+        
+        .student-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 25px rgba(79, 70, 229, 0.1);
+        }
+        
+        /* Modal Styles */
+        .modal-backdrop {
+            backdrop-filter: blur(8px);
+            background: rgba(255, 255, 255, 0.7);
+        }
+        
+        /* Input size variations */
+        .input-id { width: 120px; }
+        .input-name { width: 200px; }
+        .input-class { width: 120px; }
+        .input-marks { width: 80px; }
+        
+        /* Floating action button */
+        .fab {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(79, 70, 229, 0.2);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 40;
+        }
+        
+        .fab:hover {
+            transform: translateY(-5px) scale(1.1);
+            box-shadow: 0 10px 15px rgba(79, 70, 229, 0.3);
+        }
+        
+        /* Class badge */
+        .class-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            background: rgba(79, 70, 229, 0.1);
+            color: var(--primary);
+            transition: all 0.2s;
+        }
+        
+        .class-badge:hover {
+            background: rgba(79, 70, 229, 0.2);
+        }
+        
+        /* Floating animation */
+        .floating {
+            animation: floating 6s ease-in-out infinite;
+        }
+        
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        /* Gradient border */
+        .gradient-border {
+            position: relative;
+            border-radius: 16px;
+        }
+        
+        .gradient-border::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            z-index: -1;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+        }
+        
+        .gradient-border:hover::before {
+            opacity: 1;
+        }
+        
+        /* Animated underline */
+        .animated-underline {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .animated-underline::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            bottom: -2px;
+            left: 0;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            transform: scaleX(0);
+            transform-origin: bottom right;
+            transition: transform 0.3s ease-out;
+        }
+        
+        .animated-underline:hover::after {
+            transform: scaleX(1);
+            transform-origin: bottom left;
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating bubbles background -->
+    <div class="floating-bubbles" id="bubblesContainer"></div>
+    
+    <!-- Toast Container -->
+    <div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
+    
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-white bg-opacity-90 flex items-center justify-center z-50 hidden">
+        <div class="glass-effect rounded-2xl p-8 text-center shadow-xl">
+            <div class="loading-spinner mx-auto mb-4"></div>
+            <p class="text-gray-700 font-medium">Processing...</p>
+        </div>
+    </div>
+    
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-40 glass-effect border-b border-indigo-100 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                        <i data-feather="award" class="text-white w-4 h-4"></i>
+                    </div>
+                    <span class="text-xl font-bold text-gray-800">EduTrack</span>
+                </div>
+                <div class="flex space-x-2">
+                    <button id="teacherMode" class="px-4 py-2 rounded-lg text-indigo-600 bg-indigo-50 font-medium transition-all hover:bg-indigo-100">
+                        <i data-feather="user-check" class="inline mr-1 w-4 h-4"></i> Teacher
+                    </button>
+                    <button id="studentMode" class="px-4 py-2 rounded-lg text-gray-600 font-medium transition-all hover:bg-gray-100">
+                        <i data-feather="user" class="inline mr-1 w-4 h-4"></i> Student
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Teacher Portal -->
+    <div id="teacherPortal" class="min-h-screen pt-20 pb-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto">
+            <!-- Header -->
+            <div class="mb-8 text-center" data-aos="fade-up">
+                <h1 class="text-4xl font-bold text-gray-800 mb-2">
+                    <span class="gradient-text">Exam Management</span>
+                </h1>
+                <p class="text-gray-500">Create, manage and analyze exam results</p>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="glass-effect p-6 flex items-center space-x-4 hover:shadow-md transition-all" data-aos="fade-up" data-aos-delay="100">
+                    <div class="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center">
+                        <i data-feather="plus-circle" class="text-indigo-600 w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-800">New Exam</h3>
+                        <p class="text-sm text-gray-500">Create a new exam record</p>
+                    </div>
+                </div>
+                <div class="glass-effect p-6 flex items-center space-x-4 hover:shadow-md transition-all" data-aos="fade-up" data-aos-delay="200">
+                    <div class="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center">
+                        <i data-feather="users" class="text-purple-600 w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-800">Manage Classes</h3>
+                        <p class="text-sm text-gray-500">Add or edit student classes</p>
+                    </div>
+                </div>
+                <div class="glass-effect p-6 flex items-center space-x-4 hover:shadow-md transition-all" data-aos="fade-up" data-aos-delay="300">
+                    <div class="w-12 h-12 rounded-xl bg-pink-50 flex items-center justify-center">
+                        <i data-feather="bar-chart-2" class="text-pink-600 w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-800">View Analytics</h3>
+                        <p class="text-sm text-gray-500">Exam performance insights</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Create Exam Card -->
+            <div class="glass-effect rounded-2xl p-6 mb-8 fade-in" data-aos="fade-up">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold text-gray-800 flex items-center">
+                        <i data-feather="plus-circle" class="mr-2 text-indigo-600 w-5 h-5"></i>
+                        Create New Exam
+                    </h2>
+                    <button id="toggleExamForm" class="text-indigo-600 hover:text-indigo-800 transition-colors">
+                        <i data-feather="chevron-down" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                
+                <div id="examForm" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Exam Type</label>
+                            <select id="examType" class="glass-input w-full px-3 py-2 rounded-lg text-gray-700 focus:outline-none text-sm">
+                                <option value="quiz">Quiz</option>
+                                <option value="midterm">Midterm</option>
+                                <option value="final">Final</option>
+                                <option value="assignment">Assignment</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                            <input type="date" id="examDate" class="glass-input w-full px-3 py-2 rounded-lg text-gray-700 focus:outline-none text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Class</label>
+                            <select id="examClass" class="glass-input w-full px-3 py-2 rounded-lg text-gray-700 focus:outline-none text-sm">
+                                <!-- Classes will be populated here -->
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Total Marks</label>
+                            <input type="number" id="totalMarks" placeholder="100" value="100"
+                                   class="glass-input w-full px-3 py-2 rounded-lg text-gray-700 placeholder-gray-400 focus:outline-none text-sm">
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end">
+                        <button id="createExamBtn" class="btn-primary px-6 py-2 rounded-lg text-white font-medium text-sm">
+                            Create Exam
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Exam Results Table -->
+            <div id="resultsSection" class="hidden">
+                <div class="glass-effect rounded-2xl p-6 fade-in">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-semibold text-gray-800">
+                            <span id="currentExamName"></span> Results
+                        </h2>
+                        <div class="flex gap-2">
+                            <button id="addRowBtn" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-white text-sm font-medium transition-all">
+                                <i data-feather="plus" class="inline mr-1 w-4 h-4"></i>Add Row
+                            </button>
+                            <button id="saveResultsBtn" class="btn-primary px-4 py-1.5 rounded-lg text-white font-medium text-sm">
+                                <i data-feather="save" class="inline mr-1 w-4 h-4"></i>Save All
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b border-gray-200">
+                                    <th class="text-left py-3 px-4 text-gray-600 font-medium text-sm">#</th>
+                                    <th class="text-left py-3 px-4 text-gray-600 font-medium text-sm">Student ID</th>
+                                    <th class="text-left py-3 px-4 text-gray-600 font-medium text-sm">Name</th>
+                                    <th class="text-left py-3 px-4 text-gray-600 font-medium text-sm">Marks</th>
+                                    <th class="text-left py-3 px-4 text-gray-600 font-medium text-sm">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resultsTableBody">
+                                <!-- Dynamic rows will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Saved Exams -->
+            <div class="mt-8 glass-effect rounded-2xl p-6 fade-in" data-aos="fade-up">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold text-gray-800 flex items-center">
+                        <i data-feather="database" class="mr-2 text-indigo-600 w-5 h-5"></i>
+                        Saved Exams
+                    </h2>
+                    <div class="flex gap-2">
+                        <select id="filterClass" class="glass-input px-3 py-1.5 rounded-lg text-gray-700 focus:outline-none text-sm">
+                            <option value="">All Classes</option>
+                        </select>
+                        <select id="filterYear" class="glass-input px-3 py-1.5 rounded-lg text-gray-700 focus:outline-none text-sm">
+                            <option value="">All Years</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="savedExamsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Dynamic exam cards will be inserted here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Student Portal -->
+    <div id="studentPortal" class="min-h-screen pt-20 pb-12 px-4 sm:px-6 lg:px-8 hidden">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-12" data-aos="fade-up">
+                <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center shadow-lg">
+                    <i data-feather="award" class="text-indigo-600 w-10 h-10"></i>
+                </div>
+                <h1 class="text-4xl font-bold text-gray-800 mb-2">
+                    <span class="gradient-text">Student Results Portal</span>
+                </h1>
+                <p class="text-gray-500">Check your exam results in real-time</p>
+            </div>
+            
+            <div class="glass-effect rounded-2xl p-6 max-w-md mx-auto" data-aos="fade-up">
+                <div class="text-center mb-6">
+                    <div class="w-12 h-12 mx-auto rounded-xl bg-indigo-50 flex items-center justify-center mb-3">
+                        <i data-feather="search" class="text-indigo-600 w-5 h-5"></i>
+                    </div>
+                    <h2 class="text-xl font-semibold text-gray-800">Find Your Results</h2>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Student ID</label>
+                        <input type="text" id="studentSearchId" placeholder="Enter your student ID" 
+                               class="glass-input w-full px-4 py-3 rounded-xl text-gray-700 placeholder-gray-400 focus:outline-none">
+                    </div>
+                    <button id="searchResultsBtn" class="btn-primary w-full py-3 rounded-xl text-white font-semibold flex items-center justify-center">
+                        <i data-feather="search" class="inline mr-2 w-5 h-5"></i>Search Results
+                    </button>
+                </div>
+            </div>
+            
+            <div id="studentResults" class="mt-8 hidden">
+                <div class="glass-effect rounded-2xl p-6" data-aos="fade-up">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-xl font-semibold text-gray-800">Your Results</h2>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm text-gray-500">Student ID:</span>
+                            <span id="displayStudentId" class="font-medium text-gray-700"></span>
+                        </div>
+                    </div>
+                    <div id="studentResultsList" class="space-y-4">
+                        <!-- Student results will be displayed here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Results Modal -->
+    <div id="resultsModal" class="fixed inset-0 z-50 hidden">
+        <div class="modal-backdrop absolute inset-0"></div>
+        <div class="relative z-10 flex items-center justify-center min-h-screen p-4">
+            <div class="glass-effect rounded-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-gray-800" id="modalExamName"></h2>
+                    <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700 transition-colors">
+                        <i data-feather="x" class="w-6 h-6"></i>
+                    </button>
+                </div>
+                <div id="modalContent" class="space-y-6">
+                    <!-- Modal content will be inserted here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Floating Action Button -->
+    <button id="fab" class="fab shadow-lg hover:shadow-xl">
+        <i data-feather="plus" class="w-6 h-6"></i>
+    </button>
+    
+    <!-- Class Management Modal -->
+    <div id="classModal" class="fixed inset-0 z-50 hidden">
+        <div class="modal-backdrop absolute inset-0"></div>
+        <div class="relative z-10 flex items-center justify-center min-h-screen p-4">
+            <div class="glass-effect rounded-2xl p-6 max-w-md w-full">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold text-gray-800">Manage Classes</h2>
+                    <button onclick="closeClassModal()" class="text-gray-500 hover:text-gray-700 transition-colors">
+                        <i data-feather="x" class="w-6 h-6"></i>
+                    </button>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Add New Class</label>
+                        <div class="flex space-x-2">
+                            <input type="text" id="newClassName" placeholder="Class name" 
+                                   class="glass-input flex-1 px-3 py-2 rounded-lg text-gray-700 placeholder-gray-400 focus:outline-none text-sm">
+                            <button id="addClassBtn" class="btn-primary px-4 py-2 rounded-lg text-white font-medium text-sm">
+                                Add
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Existing Classes</label>
+                        <div id="classesList" class="flex flex-wrap gap-2">
+                            <!-- Classes will be listed here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAu6XOe-jKVQgi8kafpnnFT7xSzvYQpKsE",
+            authDomain: "eportal-81f1f.firebaseapp.com",
+            projectId: "eportal-81f1f",
+            storageBucket: "eportal-81f1f.firebasestorage.app",
+            messagingSenderId: "848211955991",
+            appId: "1:848211955991:web:61eae378dc4593f9dae752",
+            measurementId: "G-JHHCS93NFR"
+        };
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        
+        // Global variables
+        let currentExamId = null;
+        let rowCount = 0;
+        let allClasses = new Set();
+        let allYears = new Set();
+        
+        // Initialize AOS and Feather Icons
+        AOS.init({
+            duration: 800,
+            once: true
+        });
+        feather.replace();
+        
+        // Create floating bubbles
+        function createBubbles() {
+            const container = document.getElementById('bubblesContainer');
+            const bubbleCount = 15;
+            
+            for (let i = 0; i < bubbleCount; i++) {
+                const bubble = document.createElement('div');
+                bubble.className = 'bubble';
+                
+                // Random size between 50px and 150px
+                const size = Math.random() * 100 + 50;
+                bubble.style.width = `${size}px`;
+                bubble.style.height = `${size}px`;
+                
+                // Random position
+                bubble.style.left = `${Math.random() * 100}%`;
+                bubble.style.bottom = `-${size}px`;
+                
+                // Random animation duration between 15s and 30s
+                const duration = Math.random() * 15 + 15;
+                bubble.style.animationDuration = `${duration}s`;
+                
+                // Random delay
+                bubble.style.animationDelay = `${Math.random() * 10}s`;
+                
+                container.appendChild(bubble);
+            }
+        }
+        
+        // Toast Notification System
+        function showToast(message, type = 'success') {
+            const toastContainer = document.getElementById('toastContainer');
+            const toastId = 'toast-' + Date.now();
+            const bgColor = type === 'success' ? 'bg-green-500' : 'bg-red-500';
+            const icon = type === 'success' ? 'check-circle' : 'alert-circle';
+            
+            const toast = document.createElement('div');
+            toast.id = toastId;
+            toast.className = `glass-effect ${bgColor} text-white px-4 py-3 rounded-lg flex items-center space-x-3 shadow-lg toast`;
+            toast.innerHTML = `
+                <i data-feather="${icon}" class="w-5 h-5"></i>
+                <span class="font-medium text-sm">${message}</span>
+            `;
+            
+            toastContainer.appendChild(toast);
+            feather.replace();
+            
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+        
+        // Loading overlay
+        function showLoading(show = true) {
+            document.getElementById('loadingOverlay').classList.toggle('hidden', !show);
+        }
+        
+        // Create new table row
+        function createTableRow(index = null) {
+            rowCount++;
+            const rowIndex = index || rowCount;
+            const row = document.createElement('tr');
+            row.className = 'table-row border-b border-gray-100';
+            row.innerHTML = `
+                <td class="py-3 px-4 text-gray-600 text-sm">${rowIndex}</td>
+                <td class="py-2 px-4">
+                    <input type="text" placeholder="ID" 
+                           class="glass-input input-id px-3 py-1.5 rounded-lg text-gray-700 placeholder-gray-400 focus:outline-none text-sm">
+                </td>
+                <td class="py-2 px-4">
+                    <input type="text" placeholder="Full Name" 
+                           class="glass-input input-name px-3 py-1.5 rounded-lg text-gray-700 placeholder-gray-400 focus:outline-none text-sm">
+                </td>
+                <td class="py-2 px-4">
+                    <input type="number" placeholder="Marks" min="0" max="100"
+                           class="glass-input input-marks px-3 py-1.5 rounded-lg text-gray-700 placeholder-gray-400 focus:outline-none text-sm">
+                </td>
+                <td class="py-2 px-4">
+                    <button onclick="removeRow(this)" class="text-red-500 hover:text-red-600 transition-colors">
+                        <i data-feather="trash-2" class="w-4 h-4"></i>
+                    </button>
+                </td>
+            `;
+            return row;
+        }
+        
+        // Remove table row
+        function removeRow(button) {
+            const row = button.closest('tr');
+            row.style.transition = 'all 0.3s ease';
+            row.style.opacity = '0';
+            row.style.transform = 'translateX(-100%)';
+            setTimeout(() => row.remove(), 300);
+        }
+        
+        // Portal switching
+        document.getElementById('teacherMode').addEventListener('click', () => {
+            document.getElementById('teacherPortal').classList.remove('hidden');
+            document.getElementById('studentPortal').classList.add('hidden');
+            document.getElementById('teacherMode').classList.add('bg-indigo-600', 'text-white');
+            document.getElementById('teacherMode').classList.remove('text-indigo-600', 'bg-indigo-50');
+            document.getElementById('studentMode').classList.remove('bg-indigo-600', 'text-white');
+            document.getElementById('studentMode').classList.add('text-gray-600', 'hover:bg-gray-100');
+        });
+        
+        document.getElementById('studentMode').addEventListener('click', () => {
+            document.getElementById('teacherPortal').classList.add('hidden');
+            document.getElementById('studentPortal').classList.remove('hidden');
+            document.getElementById('studentMode').classList.add('bg-indigo-600', 'text-white');
+            document.getElementById('studentMode').classList.remove('text-gray-600', 'hover:bg-gray-100');
+            document.getElementById('teacherMode').classList.remove('bg-indigo-600', 'text-white');
+            document.getElementById('teacherMode').classList.add('text-indigo-600', 'bg-indigo-50');
+        });
+        
+        // Toggle exam form
+        document.getElementById('toggleExamForm').addEventListener('click', () => {
+            const form = document.getElementById('examForm');
+            const icon = document.querySelector('#toggleExamForm i');
+            
+            if (form.style.maxHeight) {
+                form.style.maxHeight = null;
+                form.style.opacity = '0';
+                setTimeout(() => form.style.display = 'none', 300);
+                icon.setAttribute('data-feather', 'chevron-down');
+            } else {
+                form.style.display = 'block';
+                setTimeout(() => {
+                    form.style.maxHeight = form.scrollHeight + 'px';
+                    form.style.opacity = '1';
+                }, 10);
+                icon.setAttribute('data-feather', 'chevron-up');
+            }
+            feather.replace();
+        });
+        
+        // Create exam
+        document.getElementById('createExamBtn').addEventListener('click', async () => {
+            const examType = document.getElementById('examType').value;
+            const examDate = document.getElementById('examDate').value;
+            const examClass = document.getElementById('examClass').value;
+            const totalMarks = document.getElementById('totalMarks').value;
+            
+            if (!examDate) {
+                showToast('Please select an exam date', 'error');
+                return;
+            }
+            
+            if (!examClass) {
+                showToast('Please select a class', 'error');
+                return;
+            }
+            
+            showLoading(true);
+            
+            try {
+                const examDoc = await db.collection('exams').add({
+                    type: examType,
+                    date: examDate,
+                    class: examClass,
+                    totalMarks: parseInt(totalMarks),
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                currentExamId = examDoc.id;
+                document.getElementById('currentExamName').textContent = `${examType} - ${examDate} (${examClass})`;
+                document.getElementById('resultsSection').classList.remove('hidden');
+                
+                showToast('Exam created successfully!');
+                showLoading(false);
+                
+                // Add 5 empty rows by default
+                const tbody = document.getElementById('resultsTableBody');
+                for (let i = 0; i < 5; i++) {
+                    tbody.appendChild(createTableRow());
+                }
+                feather.replace();
+            } catch (error) {
+                showToast('Error creating exam: ' + error.message, 'error');
+                showLoading(false);
+            }
+        });
+        
+        // Add new row
+        document.getElementById('addRowBtn').addEventListener('click', () => {
+            const tbody = document.getElementById('resultsTableBody');
+            const newRow = createTableRow();
+            tbody.appendChild(newRow);
+            feather.replace();
+            
+            // Animate new row
+            newRow.style.opacity = '0';
+            newRow.style.transform = 'translateY(-20px)';
+            setTimeout(() => {
+                newRow.style.transition = 'all 0.3s ease';
+                newRow.style.opacity = '1';
+                newRow.style.transform = 'translateY(0)';
+            }, 100);
+        });
+        
+        // Save results
+        document.getElementById('saveResultsBtn').addEventListener('click', async () => {
+            if (!currentExamId) {
+                showToast('No exam selected', 'error');
+                return;
+            }
+            
+            showLoading(true);
+            const rows = document.querySelectorAll('#resultsTableBody tr');
+            const results = [];
+            
+            for (let row of rows) {
+                const inputs = row.querySelectorAll('input');
+                const studentId = inputs[0].value.trim();
+                const name = inputs[1].value.trim();
+                const marks = inputs[2].value;
+                
+                if (studentId && name) {
+                    results.push({
+                        studentId,
+                        name,
+                        marks: marks ? parseInt(marks) : 0,
+                        examId: currentExamId,
+                        class: document.getElementById('examClass').value
+                    });
+                    
+                    allYears.add(document.getElementById('examYear').value);
+                }
+            }
+            
+            try {
+                const batch = db.batch();
+                results.forEach(result => {
+                    const ref = db.collection('results').doc();
+                    batch.set(ref, result);
+                });
+                await batch.commit();
+                
+                showToast(`Successfully saved ${results.length} results!`);
+                loadSavedExams();
+                showLoading(false);
+                
+                // Clear table
+                document.getElementById('resultsTableBody').innerHTML = '';
+                rowCount = 0;
+                document.getElementById('resultsSection').classList.add('hidden');
+            } catch (error) {
+                showToast('Error saving results: ' + error.message, 'error');
+                showLoading(false);
+            }
+        });
+        
+        // Load saved exams
+        async function loadSavedExams() {
+            try {
+                const snapshot = await db.collection('exams').orderBy('createdAt', 'desc').get();
+                const container = document.getElementById('savedExamsList');
+                container.innerHTML = '';
+                
+                if (snapshot.empty) {
+                    container.innerHTML = '<p class="text-gray-500 col-span-full text-center py-8">No exams found</p>';
+                    return;
+                }
+                
+                // Update filter options
+                updateFilterOptions();
+                
+                snapshot.forEach(doc => {
+                    const exam = doc.data();
+                    const card = document.createElement('div');
+                    card.className = 'glass-effect rounded-xl p-5 hover:shadow-md transition-all cursor-pointer gradient-border';
+                    card.innerHTML = `
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-semibold text-gray-800">${exam.type}</h3>
+                            <span class="class-badge text-xs">${exam.class}</span>
+                        </div>
+                        <p class="text-sm text-gray-500 mb-3">Date: ${exam.date}</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-500">Total Marks: ${exam.totalMarks}</span>
+                            <button onclick="viewExamResults('${doc.id}', '${exam.type} - ${exam.date}')" 
+                                    class="text-indigo-600 hover:text-indigo-800 transition-colors text-sm font-medium">
+                                View <i data-feather="chevron-right" class="inline w-4 h-4"></i>
+                            </button>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+                feather.replace();
+            } catch (error) {
+                showToast('Error loading exams: ' + error.message, 'error');
+            }
+        }
+        
+        // Update filter options
+        function updateFilterOptions() {
+            const classSelect = document.getElementById('filterClass');
+            const yearSelect = document.getElementById('filterYear');
+            
+            // Clear existing options except "All"
+            classSelect.innerHTML = '<option value="">All Classes</option>';
+            yearSelect.innerHTML = '<option value="">All Years</option>';
+            
+            // Add class options
+            Array.from(allClasses).sort().forEach(cls => {
+                const option = document.createElement('option');
+                option.value = cls;
+                option.textContent = cls;
+                classSelect.appendChild(option);
+            });
+            
+            // Add year options
+            Array.from(allYears).sort().forEach(year => {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                yearSelect.appendChild(option);
+            });
+        }
+        
+        // View exam results with modal
+        async function viewExamResults(examId, examName) {
+            showLoading(true);
+            try {
+                const resultsSnapshot = await db.collection('results').where('examId', '==', examId).get();
+                const examSnapshot = await db.collection('exams').doc(examId).get();
+                
+                if (resultsSnapshot.empty) {
+                    showToast('No results found for this exam', 'error');
+                    showLoading(false);
+                    return;
+                }
+                
+                const exam = examSnapshot.data();
+                const results = [];
+                resultsSnapshot.forEach(doc => results.push(doc.data()));
+                
+                // Calculate statistics
+                const totalStudents = results.length;
+                const avgMarks = results.reduce((sum, r) => sum + r.marks, 0) / totalStudents;
+                const highestMarks = Math.max(...results.map(r => r.marks));
+                const lowestMarks = Math.min(...results.map(r => r.marks));
+                
+                // Show modal
+                document.getElementById('modalExamName').textContent = examName;
+                document.getElementById('modalContent').innerHTML = `
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                        <div class="glass-effect rounded-xl p-4 text-center">
+                            <div class="text-2xl font-bold text-indigo-600">${totalStudents}</div>
+                            <div class="text-gray-500 text-sm">Total Students</div>
+                        </div>
+                        <div class="glass-effect rounded-xl p-4 text-center">
+                            <div class="text-2xl font-bold text-green-600">${avgMarks.toFixed(1)}</div>
+                            <div class="text-gray-500 text-sm">Average Marks</div>
+                        </div>
+                        <div class="glass-effect rounded-xl p-4 text-center">
+                            <div class="text-2xl font-bold text-yellow-600">${highestMarks}</div>
+                            <div class="text-gray-500 text-sm">Highest Marks</div>
+                        </div>
+                        <div class="glass-effect rounded-xl p-4 text-center">
+                            <div class="text-2xl font-bold text-red-600">${lowestMarks}</div>
+                            <div class="text-gray-500 text-sm">Lowest Marks</div>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-effect rounded-xl p-5 mb-6">
+                        <h3 class="font-semibold text-gray-800 mb-4">Performance Distribution</h3>
+                        <canvas id="marksChart" width="400" height="200"></canvas>
+                    </div>
+                    
+                    <div>
+                        <h3 class="font-semibold text-gray-800 mb-4">Detailed Results</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b border-gray-200">
+                                        <th class="text-left py-2 px-3 text-gray-600 text-sm font-medium">Student ID</th>
+                                        <th class="text-left py-2 px-3 text-gray-600 text-sm font-medium">Name</th>
+                                        <th class="text-left py-2 px-3 text-gray-600 text-sm font-medium">Marks</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${results.map(r => `
+                                        <tr class="border-b border-gray-100">
+                                            <td class="py-2 px-3 text-gray-600 text-sm">${r.studentId}</td>
+                                            <td class="py-2 px-3 text-gray-600 text-sm">${r.name}</td>
+                                            <td class="py-2 px-3 text-gray-600 text-sm">${r.marks}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('resultsModal').classList.remove('hidden');
+                
+                // Create chart
+                setTimeout(() => {
+                    const marks = results.map(r => r.marks);
+                    const ctx = document.getElementById('marksChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['0-20', '21-40', '41-60', '61-80', '81-100'],
+                            datasets: [{
+                                label: 'Number of Students',
+                                data: [
+                                    marks.filter(m => m <= 20).length,
+                                    marks.filter(m => m > 20 && m <= 40).length,
+                                    marks.filter(m => m > 40 && m <= 60).length,
+                                    marks.filter(m => m > 60 && m <= 80).length,
+                                    marks.filter(m => m > 80).length
+                                ],
+                                backgroundColor: 'rgba(79, 70, 229, 0.6)',
+                                borderColor: 'rgba(79, 70, 229, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        color: '#9ca3af'
+                                    },
+                                    grid: {
+                                        color: 'rgba(79, 70, 229, 0.1)'
+                                    }
+                                },
+                                x: {
+                                    ticks: {
+                                        color: '#9ca3af'
+                                    },
+                                    grid: {
+                                        color: 'rgba(79, 70, 229, 0.1)'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }, 100);
+                
+                showLoading(false);
+            } catch (error) {
+                showToast('Error loading results: ' + error.message, 'error');
+                showLoading(false);
+            }
+        }
+        
+        // Close modal
+        function closeModal() {
+            document.getElementById('resultsModal').classList.add('hidden');
+        }
+        
+        // Student search results
+        document.getElementById('searchResultsBtn').addEventListener('click', async () => {
+            const studentId = document.getElementById('studentSearchId').value.trim();
+            
+            if (!studentId) {
+                showToast('Please enter your student ID', 'error');
+                return;
+            }
+            
+            showLoading(true);
+            
+            try {
+                const resultsSnapshot = await db.collection('results').where('studentId', '==', studentId).get();
+                
+                if (resultsSnapshot.empty) {
+                    showToast('No results found for this student ID', 'error');
+                    showLoading(false);
+                    return;
+                }
+                
+                const results = [];
+                for (const doc of resultsSnapshot.docs) {
+                    const result = doc.data();
+                    const examSnapshot = await db.collection('exams').doc(result.examId).get();
+                    if (examSnapshot.exists) {
+                        result.exam = examSnapshot.data();
+                        results.push(result);
+                    }
+                }
+                
+                document.getElementById('displayStudentId').textContent = studentId;
+                const resultsList = document.getElementById('studentResultsList');
+                resultsList.innerHTML = '';
+                
+                results.forEach(result => {
+                    const percentage = (result.marks / result.exam.totalMarks * 100).toFixed(1);
+                    const card = document.createElement('div');
+                    card.className = 'student-card rounded-xl p-5';
+                    card.innerHTML = `
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <h3 class="font-semibold text-gray-800">${result.exam.type}</h3>
+                                <p class="text-sm text-gray-500">${result.exam.date}</p>
+                            </div>
+                            <span class="class-badge">${result.class}</span>
+                        </div>
+                        <div class="flex justify-between items-center mb-2">
+                            <div>
+                                <span class="text-sm text-gray-500">Marks Obtained</span>
+                                <p class="font-semibold text-gray-800">${result.marks} / ${result.exam.totalMarks}</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-sm text-gray-500">Percentage</span>
+                                <p class="font-semibold ${percentage >= 50 ? 'text-green-600' : 'text-red-600'}">${percentage}%</p>
+                            </div>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div class="bg-gradient-to-r from-indigo-500 to-purple-600 h-2.5 rounded-full" 
+                                 style="width: ${percentage}%"></div>
+                        </div>
+                    `;
+                    resultsList.appendChild(card);
+                });
+                
+                document.getElementById('studentResults').classList.remove('hidden');
+                showLoading(false);
+            } catch (error) {
+                showToast('Error searching results: ' + error.message, 'error');
+                showLoading(false);
+            }
+        });
+        
+        // Floating Action Button
+        document.getElementById('fab').addEventListener('click', () => {
+            openClassModal();
+        });
+        
+        // Open class management modal
+        function openClassModal() {
+            document.getElementById('classModal').classList.remove('hidden');
+            loadClasses();
+        }
+        
+        // Close class management modal
+        function closeClassModal() {
+            document.getElementById('classModal').classList.add('hidden');
+        }
+        
+        // Load classes from Firestore
+        async function loadClasses() {
+            try {
+                const snapshot = await db.collection('classes').orderBy('name').get();
+                const container = document.getElementById('classesList');
+                container.innerHTML = '';
+                
+                if (snapshot.empty) {
+                    container.innerHTML = '<p class="text-gray-500 text-sm">No classes added yet</p>';
+                    return;
+                }
+                
+                snapshot.forEach(doc => {
+                    const cls = doc.data();
+                    const badge = document.createElement('div');
+                    badge.className = 'class-badge cursor-pointer flex items-center';
+                    badge.innerHTML = `
+                        <span>${cls.name}</span>
+                        <button onclick="deleteClass('${doc.id}')" class="ml-2 text-gray-400 hover:text-red-500">
+                            <i data-feather="x" class="w-3 h-3"></i>
+                        </button>
+                    `;
+                    container.appendChild(badge);
+                });
+                feather.replace();
+                
+                // Also populate the exam class dropdown
+                const classSelect = document.getElementById('examClass');
+                classSelect.innerHTML = '<option value="">Select Class</option>';
+                snapshot.forEach(doc => {
+                    const option = document.createElement('option');
+                    option.value = doc.data().name;
+                    option.textContent = doc.data().name;
+                    classSelect.appendChild(option);
+                });
+            } catch (error) {
+                showToast('Error loading classes: ' + error.message, 'error');
+            }
+        }
+        
+        // Add new class
+        document.getElementById('addClassBtn').addEventListener('click', async () => {
+            const className = document.getElementById('newClassName').value.trim();
+            
+            if (!className) {
+                showToast('Please enter a class name', 'error');
+                return;
+            }
+            
+            showLoading(true);
+            
+            try {
+                await db.collection('classes').add({
+                    name: className,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                document.getElementById('newClassName').value = '';
+                showToast('Class added successfully!');
+                loadClasses();
+                showLoading(false);
+            } catch (error) {
+                showToast('Error adding class: ' + error.message, 'error');
+                showLoading(false);
+            }
+        });
+        
+        // Delete class
+        async function deleteClass(classId) {
+            if (!confirm('Are you sure you want to delete this class?')) return;
+            
+            showLoading(true);
+            
+            try {
+                await db.collection('classes').doc(classId).delete();
+                showToast('Class deleted successfully');
+                loadClasses();
+                showLoading(false);
+            } catch (error) {
+                showToast('Error deleting class: ' + error.message, 'error');
+                showLoading(false);
+            }
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            createBubbles();
+            loadSavedExams();
+            loadClasses();
+            document.getElementById('examDate').valueAsDate = new Date();
+            
+            // Set default mode to teacher
+            document.getElementById('teacherMode').click();
+            
+            // Add some animation to the FAB
+            anime({
+                targets: '#fab',
+                translateY: [-20, 0],
+                opacity: [0, 1],
+                duration: 800,
+                easing: 'easeOutExpo'
+            });
+        });
+    </script>
+</body>
+</html>

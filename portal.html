@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Results Portal</title>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        
+        :root {
+            --primary-purple: #7c3aed;
+            --secondary-purple: #a855f7;
+            --accent-pink: #ec4899;
+            --accent-blue: #3b82f6;
+            --accent-cyan: #06b6d4;
+            --dark-bg: #0f0f23;
+            --glass-bg: rgba(20, 20, 40, 0.6);
+            --glass-border: rgba(124, 58, 237, 0.2);
+        }
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding-bottom: 80px;
+        }
+        
+        .glass-effect {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px rgba(124, 58, 237, 0.1);
+        }
+        
+        .glass-input {
+            background: rgba(20, 20, 40, 0.4);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(124, 58, 237, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .glass-input:focus {
+            border-color: var(--primary-purple);
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, var(--primary-purple), var(--accent-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-purple), var(--secondary-purple));
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.4);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+        
+        .loading-spinner {
+            border: 3px solid rgba(124, 58, 237, 0.3);
+            border-radius: 50%;
+            border-top: 3px solid var(--primary-purple);
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .neural-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.1;
+            background-image: 
+                radial-gradient(circle at 20% 50%, var(--primary-purple) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, var(--accent-pink) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, var(--accent-blue) 0%, transparent 50%),
+                radial-gradient(circle at 0% 100%, var(--accent-cyan) 0%, transparent 50%);
+        }
+        
+        .result-card {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(236, 72, 153, 0.1));
+            border: 1px solid rgba(124, 58, 237, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .result-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(124, 58, 237, 0.3);
+        }
+        
+        .grade-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+        
+        .grade-A { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+        .grade-B { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+        .grade-C { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+        .grade-D { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .grade-F { background: rgba(107, 114, 128, 0.2); color: #6b7280; }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(124, 58, 237, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0); }
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(20, 20, 40, 0.3);
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: var(--primary-purple);
+            border-radius: 3px;
+        }
+        
+        .stats-card {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(59, 130, 246, 0.1));
+            border: 1px solid rgba(124, 58, 237, 0.3);
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 20px 0;
+        }
+        
+        .performance-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .performance-up {
+            background: rgba(34, 197, 94, 0.1);
+            color: #22c55e;
+        }
+        
+        .performance-down {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+        
+        .performance-same {
+            background: rgba(107, 114, 128, 0.1);
+            color: #9ca3af;
+        }
+        
+        /* Mobile App Style Navigation */
+        .mobile-nav {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 400px;
+            background: rgba(20, 20, 40, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(124, 58, 237, 0.3);
+            border-radius: 30px;
+            padding: 16px;
+            z-index: 50;
+            display: none;
+        }
+        
+        .mobile-nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px;
+            border-radius: 16px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .mobile-nav-item:hover {
+            background: rgba(124, 58, 237, 0.2);
+        }
+        
+        .mobile-nav-item.active {
+            background: rgba(124, 58, 237, 0.3);
+        }
+        
+        .mobile-nav-item i {
+            width: 20px;
+            height: 20px;
+            color: #e0e0e0;
+        }
+        
+        .mobile-nav-item span {
+            font-size: 0.75rem;
+            color: #e0e0e0;
+            font-weight: 500;
+        }
+        
+        /* Error Message */
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            display: none;
+        }
+        
+        /* Mobile Responsive Adjustments */
+        @media (max-width: 640px) {
+            .glass-effect {
+                margin: 0 8px;
+            }
+            
+            .stats-card {
+                padding: 16px;
+            }
+            
+            .chart-container {
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="neural-bg"></div>
+    
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+        <div class="glass-effect rounded-2xl p-8 text-center">
+            <div class="loading-spinner mx-auto mb-4"></div>
+            <p class="text-white">Loading your results...</p>
+        </div>
+    </div>
+    
+    <!-- Login Section -->
+    <div id="loginSection" class="min-h-screen pt-8 pb-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12" data-aos="fade-up">
+                <h1 class="text-3xl sm:text-5xl font-black mb-4">
+                    <span class="gradient-text">Student Results</span>
+                </h1>
+                <p class="text-gray-300 text-lg sm:text-xl font-light">Access your exam results and performance analytics</p>
+            </div>
+            
+            <div class="glass-effect rounded-3xl p-6 sm:p-8 max-w-md mx-auto" data-aos="fade-up">
+                <h2 class="text-xl sm:text-2xl font-bold text-white mb-6 text-center">Student Login</h2>
+                
+                <!-- Error Message -->
+                <div id="errorMessage" class="error-message">
+                    <i data-feather="alert-circle" class="inline mr-2"></i>
+                    <span id="errorText"></span>
+                </div>
+                
+                <form id="loginForm" class="space-y-4">
+                    <div>
+                        <label class="block text-gray-300 mb-2 font-medium">Student ID</label>
+                        <input type="text" id="studentId" placeholder="Enter your student ID" required
+                               class="glass-input w-full px-4 py-3 rounded-xl text-white placeholder-gray-400 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-gray-300 mb-2 font-medium">Full Name</label>
+                        <input type="text" id="studentName" placeholder="Enter your full name" required
+                               class="glass-input w-full px-4 py-3 rounded-xl text-white placeholder-gray-400 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-gray-300 mb-2 font-medium">Class</label>
+                        <input type="text" id="studentClass" placeholder="e.g., 10A" required
+                               class="glass-input w-full px-4 py-3 rounded-xl text-white placeholder-gray-400 focus:outline-none">
+                    </div>
+                    <button type="submit" class="btn-primary w-full py-3 rounded-xl text-white font-semibold">
+                        <i data-feather="log-in" class="inline mr-2"></i>Access Results
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Dashboard Section -->
+    <div id="dashboardSection" class="min-h-screen pt-8 pb-12 hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="mb-8" data-aos="fade-up">
+                <h1 class="text-2xl sm:text-4xl font-black mb-2">
+                    <span class="gradient-text">Welcome back,</span>
+                    <br>
+                    <span class="text-green-400 text-sm sm:text-base font-normal" id="welcomeName"></span>
+                </h1>
+                <p class="text-gray-400">Your academic performance at a glance</p>
+            </div>
+            
+            <!-- Stats Overview -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8" data-aos="fade-up">
+                <div class="stats-card rounded-xl p-4 sm:p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <i data-feather="book-open" class="text-purple-400 w-6 h-6 sm:w-8 sm:h-8"></i>
+                        <span class="performance-up performance-indicator">
+                            <i data-feather="trending-up" class="w-3 h-3 sm:w-4 sm:h-4"></i>
+                            +12%
+                        </span>
+                    </div>
+                    <div class="text-2xl sm:text-3xl font-bold text-white mb-1" id="totalExams">0</div>
+                    <div class="text-gray-400 text-sm sm:text-base">Total Exams</div>
+                </div>
+                
+                <div class="stats-card rounded-xl p-4 sm:p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <i data-feather="target" class="text-green-400 w-6 h-6 sm:w-8 sm:h-8"></i>
+                        <span class="performance-same performance-indicator">
+                            <i data-feather="minus" class="w-3 h-3 sm:w-4 sm:h-4"></i>
+                            0%
+                        </span>
+                    </div>
+                    <div class="text-2xl sm:text-3xl font-bold text-white mb-1" id="averageScore">0</div>
+                    <div class="text-gray-400 text-sm sm:text-base">Average Score</div>
+                </div>
+                
+                <div class="stats-card rounded-xl p-4 sm:p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <i data-feather="award" class="text-yellow-400 w-6 h-6 sm:w-8 sm:h-8"></i>
+                        <span class="performance-up performance-indicator">
+                            <i data-feather="trending-up" class="w-3 h-3 sm:w-4 sm:h-4"></i>
+                            Best
+                        </span>
+                    </div>
+                    <div class="text-2xl sm:text-3xl font-bold text-white mb-1" id="highestScore">0</div>
+                    <div class="text-gray-400 text-sm sm:text-base">Highest Score</div>
+                </div>
+                
+                <div class="stats-card rounded-xl p-4 sm:p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <i data-feather="trending-up" class="text-blue-400 w-6 h-6 sm:w-8 sm:h-8"></i>
+                        <span class="performance-down performance-indicator">
+                            <i data-feather="trending-down" class="w-3 h-3 sm:w-4 sm:h-4"></i>
+                            -5%
+                        </span>
+                    </div>
+                    <div class="text-2xl sm:text-3xl font-bold text-white mb-1" id="improvement">0</div>
+                    <div class="text-gray-400 text-sm sm:text-base">Improvement</div>
+                </div>
+            </div>
+            
+            <!-- Charts Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
+                <!-- Performance Over Time -->
+                <div class="glass-effect rounded-3xl p-4 sm:p-6" data-aos="fade-up">
+                    <h3 class="text-lg sm:text-xl font-bold text-white mb-4">Performance Over Time</h3>
+                    <div class="chart-container">
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Subject Distribution -->
+                <div class="glass-effect rounded-3xl p-4 sm:p-6" data-aos="fade-up">
+                    <h3 class="text-lg sm:text-xl font-bold text-white mb-4">Exam Types Performance</h3>
+                    <div class="chart-container">
+                        <canvas id="subjectChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Detailed Results -->
+            <div class="glass-effect rounded-3xl p-4 sm:p-6" data-aos="fade-up">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg sm:text-xl font-bold text-white">Detailed Results</h3>
+                    <button onclick="downloadReport()" class="btn-primary px-3 py-2 sm:px-4 sm:py-2 rounded-xl text-white text-sm sm:text-base">
+                        <i data-feather="download" class="inline mr-1 sm:mr-2"></i>Download
+                    </button>
+                </div>
+                <div id="resultsContainer" class="space-y-4">
+                    <!-- Results will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Mobile Navigation -->
+    <div id="mobileNav" class="mobile-nav">
+        <div class="flex justify-around">
+            <div class="mobile-nav-item active" onclick="showDashboard()">
+            <i data-feather="home" style="color: #fff;"></i>
+            <span>Home</span>
+            </div>
+            <div class="mobile-nav-item" onclick="logout()">
+            <i data-feather="log-out" style="color: #fff;"></i>
+            <span>Logout</span>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+  apiKey: "AIzaSyAu6XOe-jKVQgi8kafpnnFT7xSzvYQpKsE",
+  authDomain: "eportal-81f1f.firebaseapp.com",
+  projectId: "eportal-81f1f",
+  storageBucket: "eportal-81f1f.firebasestorage.app",
+  messagingSenderId: "848211955991",
+  appId: "1:848211955991:web:61eae378dc4593f9dae752",
+  measurementId: "G-JHHCS93NFR"
+};
+
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        
+        // Global variables
+        let currentStudent = null;
+        let studentResults = [];
+        
+        // Initialize AOS and Feather Icons
+        AOS.init({
+            duration: 1000,
+            once: true
+        });
+        feather.replace();
+        
+        // Loading overlay
+        function showLoading(show = true) {
+            document.getElementById('loadingOverlay').classList.toggle('hidden', !show);
+        }
+        
+        // Calculate grade
+        function calculateGrade(marks, totalMarks) {
+            const percentage = (marks / totalMarks) * 100;
+            if (percentage >= 90) return { grade: 'A', class: 'grade-A' };
+            if (percentage >= 80) return { grade: 'B', class: 'grade-B' };
+            if (percentage >= 70) return { grade: 'C', class: 'grade-C' };
+            if (percentage >= 60) return { grade: 'D', class: 'grade-D' };
+            return { grade: 'F', class: 'grade-F' };
+        }
+        
+        // Show error message
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            const errorText = document.getElementById('errorText');
+            errorText.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Login form submission
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const studentId = document.getElementById('studentId').value.trim().toLowerCase();
+            const studentName = document.getElementById('studentName').value.trim().toLowerCase();
+            const studentClass = document.getElementById('studentClass').value.trim().toLowerCase();
+            
+            if (!studentId || !studentName || !studentClass) {
+                showError('Please fill in all fields');
+                return;
+            }
+            
+            showLoading(true);
+            
+            try {
+                // Search for student results (case insensitive)
+                const resultsSnapshot = await db.collection('results').get();
+                const results = [];
+                
+                resultsSnapshot.forEach(doc => {
+                    const result = doc.data();
+                    if (result.studentId.toLowerCase() === studentId && 
+                        result.name.toLowerCase() === studentName && 
+                        result.class.toLowerCase() === studentClass) {
+                        results.push(result);
+                    }
+                });
+                
+                if (results.length === 0) {
+                    showError('No results found for the provided credentials. Please check your Student ID, Name, and Class.');
+                    showLoading(false);
+                    return;
+                }
+                
+                // Load exam details for each result
+                const resultsWithExams = [];
+                for (const result of results) {
+                    const examSnapshot = await db.collection('exams').doc(result.examId).get();
+                    if (examSnapshot.exists) {
+                        resultsWithExams.push({
+                            ...result,
+                            exam: examSnapshot.data()
+                        });
+                    }
+                }
+                
+                currentStudent = { studentId, studentName, studentClass };
+                studentResults = resultsWithExams;
+                
+                // Show dashboard and mobile nav
+                document.getElementById('loginSection').classList.add('hidden');
+                document.getElementById('dashboardSection').classList.remove('hidden');
+                document.getElementById('mobileNav').style.display = 'block';
+                document.getElementById('welcomeName').textContent = studentName;
+                
+                // Update dashboard
+                updateDashboard();
+                showLoading(false);
+            } catch (error) {
+                showError('Error loading results: ' + error.message);
+                showLoading(false);
+            }
+        });
+        
+        // Update dashboard with student data
+        function updateDashboard() {
+            // Calculate statistics
+            const totalExams = studentResults.length;
+            const averageScore = studentResults.reduce((sum, r) => sum + r.marks, 0) / totalExams;
+            const highestScore = Math.max(...studentResults.map(r => r.marks));
+            
+            // Update stats
+            document.getElementById('totalExams').textContent = totalExams;
+            document.getElementById('averageScore').textContent = averageScore.toFixed(1);
+            document.getElementById('highestScore').textContent = highestScore;
+            document.getElementById('improvement').textContent = calculateImprovement();
+            
+            // Create charts
+            createPerformanceChart();
+            createSubjectChart();
+            
+            // Display results
+            displayResults();
+        }
+        
+        // Calculate improvement
+        function calculateImprovement() {
+            if (studentResults.length < 2) return '0';
+            
+            const sortedResults = [...studentResults].sort((a, b) => 
+                new Date(a.exam.date) - new Date(b.exam.date)
+            );
+            
+            const recent = sortedResults.slice(-2);
+            const improvement = recent[1].marks - recent[0].marks;
+            return improvement > 0 ? `+${improvement}` : improvement.toString();
+        }
+        
+        // Create performance over time chart
+        function createPerformanceChart() {
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            
+            // Sort results by date
+            const sortedResults = [...studentResults].sort((a, b) => 
+                new Date(a.exam.date) - new Date(b.exam.date)
+            );
+            
+            const labels = sortedResults.map(r => r.exam.date);
+            const scores = sortedResults.map(r => r.marks);
+            const maxScores = sortedResults.map(r => r.exam.totalMarks);
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Your Score',
+                        data: scores,
+                        borderColor: '#7c3aed',
+                        backgroundColor: 'rgba(124, 58, 237, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }, {
+                        label: 'Max Score',
+                        data: maxScores,
+                        borderColor: '#ec4899',
+                        backgroundColor: 'rgba(236, 72, 153, 0.1)',
+                        tension: 0.4,
+                        borderDash: [5, 5]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#e0e0e0'
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: '#9ca3af'
+                            },
+                            grid: {
+                                color: 'rgba(124, 58, 237, 0.2)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: '#9ca3af'
+                            },
+                            grid: {
+                                color: 'rgba(124, 58, 237, 0.2)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Create subject performance chart
+        function createSubjectChart() {
+            const ctx = document.getElementById('subjectChart').getContext('2d');
+            
+            // Group by exam type
+            const examTypes = {};
+            studentResults.forEach(r => {
+                if (!examTypes[r.exam.type]) {
+                    examTypes[r.exam.type] = { total: 0, count: 0, max: 0 };
+                }
+                examTypes[r.exam.type].total += r.marks;
+                examTypes[r.exam.type].count += 1;
+                examTypes[r.exam.type].max = r.exam.totalMarks;
+            });
+            
+            const labels = Object.keys(examTypes);
+            const averages = labels.map(type => 
+                examTypes[type].total / examTypes[type].count
+            );
+            const maxPossible = labels.map(type => examTypes[type].max);
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Average Score',
+                        data: averages,
+                        backgroundColor: 'rgba(124, 58, 237, 0.6)',
+                        borderColor: 'rgba(124, 58, 237, 1)',
+                        borderWidth: 1
+                    }, {
+                        label: 'Max Possible',
+                        data: maxPossible,
+                        backgroundColor: 'rgba(236, 72, 153, 0.4)',
+                        borderColor: 'rgba(236, 72, 153, 0.8)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#e0e0e0'
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: '#9ca3af'
+                            },
+                            grid: {
+                                color: 'rgba(124, 58, 237, 0.2)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: '#9ca3af'
+                            },
+                            grid: {
+                                color: 'rgba(124, 58, 237, 0.2)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Display detailed results
+        function displayResults() {
+            const container = document.getElementById('resultsContainer');
+            container.innerHTML = '';
+            
+            // Sort by date (newest first)
+            const sortedResults = [...studentResults].sort((a, b) => 
+                new Date(b.exam.date) - new Date(a.exam.date)
+            );
+            
+            sortedResults.forEach(result => {
+                const grade = calculateGrade(result.marks, result.exam.totalMarks);
+                const percentage = ((result.marks / result.exam.totalMarks) * 100).toFixed(1);
+                
+                const card = document.createElement('div');
+                card.className = 'result-card rounded-xl p-4 sm:p-6';
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h4 class="text-lg sm:text-xl font-bold text-white">${result.exam.type}</h4>
+                            <p class="text-gray-400 text-sm">${result.exam.date}</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-2xl sm:text-3xl font-bold text-purple-400">${result.marks}</div>
+                            <div class="text-gray-400 text-sm">/${result.exam.totalMarks}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+                        <div>
+                            <p class="text-gray-400 text-sm">Percentage</p>
+                            <p class="text-white font-semibold">${percentage}%</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-400 text-sm">Grade</p>
+                            <span class="grade-badge ${grade.class}">${grade.grade}</span>
+                        </div>
+                        <div>
+                            <p class="text-gray-400 text-sm">Exam Type</p>
+                            <p class="text-white font-semibold">${result.exam.type}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-400 text-sm">Class</p>
+                            <p class="text-white font-semibold">${result.class}</p>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+        
+        // Download report
+        function downloadReport() {
+            const report = {
+                student: currentStudent,
+                results: studentResults,
+                generatedAt: new Date().toISOString(),
+                summary: {
+                    totalExams: studentResults.length,
+                    averageScore: (studentResults.reduce((sum, r) => sum + r.marks, 0) / studentResults.length).toFixed(2),
+                    highestScore: Math.max(...studentResults.map(r => r.marks)),
+                    improvement: calculateImprovement()
+                }
+            };
+            
+            const dataStr = JSON.stringify(report, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportFileDefaultName = `student-report-${currentStudent.studentId}-${Date.now()}.json`;
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+        }
+        
+        // Mobile navigation functions
+        function showDashboard() {
+            document.querySelectorAll('.mobile-nav-item').forEach(item => item.classList.remove('active'));
+            document.querySelector('.mobile-nav-item:first-child').classList.add('active');
+            // Dashboard is already visible
+        }
+        
+        function showResults() {
+            document.querySelectorAll('.mobile-nav-item').forEach(item => item.classList.remove('active'));
+            event.target.closest('.mobile-nav-item').classList.add('active');
+            // Scroll to results section
+            document.getElementById('resultsContainer').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Logout
+        function logout() {
+            currentStudent = null;
+            studentResults = [];
+            
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('dashboardSection').classList.add('hidden');
+            document.getElementById('mobileNav').style.display = 'none';
+            
+            // Clear form
+            document.getElementById('studentId').value = '';
+            document.getElementById('studentName').value = '';
+            document.getElementById('studentClass').value = '';
+            
+            // Reset nav
+            document.querySelectorAll('.mobile-nav-item').forEach(item => item.classList.remove('active'));
+            document.querySelector('.mobile-nav-item:first-child').classList.add('active');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Results Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary-blue: #3b82f6;
+            --primary-indigo: #6366f1;
+            --dark-bg: #0f172a;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--dark-bg);
+            color: white;
+            overflow-x: hidden;
+        }
+        
+        .glassy {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--primary-blue), var(--primary-indigo));
+        }
+        
+        .gradient-text {
+            background: linear-gradient(90deg, var(--primary-blue), var(--primary-indigo));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(59, 130, 246, 0.1);
+            box-shadow: inset 0 0 25px rgba(59, 130, 246, 0.4);
+            animation: float 15s infinite ease-in-out;
+            z-index: -1;
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-20px) rotate(5deg);
+            }
+        }
+        
+        @keyframes gradientShift {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+        
+        .gradient-animate {
+            background-size: 200% 200%;
+            animation: gradientShift 8s ease infinite;
+        }
+        
+        .slide-in {
+            animation: slideIn 0.5s ease-out forwards;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .toast {
+            animation: toastIn 0.3s ease-out, toastOut 0.3s ease-in 2.7s forwards;
+        }
+        
+        @keyframes toastIn {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes toastOut {
+            from {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+            }
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .grade-A { color: #10b981; }
+        .grade-B { color: #84cc16; }
+        .grade-C { color: #f59e0b; }
+        .grade-D { color: #f97316; }
+        .grade-F { color: #ef4444; }
+    </style>
+</head>
+<body class="min-h-screen relative overflow-x-hidden">
+    <!-- Floating Bubbles Background -->
+    <div id="bubbles"></div>
+    
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2 w-72"></div>
+    
+    <!-- Login Section -->
+    <div id="login-section" class="min-h-screen flex items-center justify-center p-4">
+        <div class="glassy rounded-2xl p-8 w-full max-w-md slide-in">
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold gradient-text mb-2">Student Portal</h1>
+                <p class="text-gray-400">View your academic results and performance</p>
+            </div>
+            
+            <form id="login-form" class="space-y-6">
+                <div>
+                    <label for="student-id" class="block text-sm font-medium text-gray-300 mb-1">Student ID</label>
+                    <input type="text" id="student-id" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter your student ID" required>
+                </div>
+                
+                <div>
+                    <label for="student-name" class="block text-sm font-medium text-gray-300 mb-1">Full Name</label>
+                    <input type="text" id="student-name" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter your full name" required>
+                </div>
+                
+                <button type="submit" class="w-full gradient-bg text-white px-4 py-3 rounded-lg hover:opacity-90 transition font-medium flex items-center justify-center">
+                    <i class="fas fa-sign-in-alt mr-2"></i> Login
+                </button>
+            </form>
+            
+            <div class="mt-6 text-center text-sm text-gray-400">
+                <p>Having trouble logging in? Contact your school administrator.</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Dashboard Section (Hidden by default) -->
+    <div id="dashboard-section" class="hidden container mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="flex justify-between items-center mb-8 slide-in">
+            <div>
+                <h1 class="text-3xl font-bold gradient-text">Student Dashboard</h1>
+                <p class="text-gray-400" id="welcome-message">Welcome back</p>
+            </div>
+            <div class="flex space-x-4">
+                <button id="logout-btn" class="glassy p-2 rounded-full hover:bg-gray-800 transition">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </header>
+        
+        <!-- Student Info -->
+        <div class="glassy rounded-xl p-6 mb-6 slide-in" style="animation-delay: 0.1s;">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="flex items-center space-x-4">
+                    <div class="gradient-bg p-3 rounded-full">
+                        <i class="fas fa-id-card text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-sm">Student ID</p>
+                        <p class="font-medium" id="display-id">-</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <div class="gradient-bg p-3 rounded-full">
+                        <i class="fas fa-user text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-sm">Name</p>
+                        <p class="font-medium" id="display-name">-</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <div class="gradient-bg p-3 rounded-full">
+                        <i class="fas fa-graduation-cap text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-sm">Class</p>
+                        <p class="font-medium" id="display-class">-</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Results Section -->
+        <div class="glassy rounded-xl p-6 slide-in" style="animation-delay: 0.2s;">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold flex items-center">
+                    <i class="fas fa-chart-line mr-2"></i> Academic Results
+                </h2>
+                <select id="exam-select" class="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Select an exam</option>
+                </select>
+            </div>
+            
+            <div id="results-container" class="overflow-x-auto">
+                <div id="no-results-message" class="text-center py-8 text-gray-500">
+                    <i class="fas fa-book-open text-4xl mb-4 opacity-50"></i>
+                    <p>Select an exam to view your results</p>
+                </div>
+                
+                <table id="results-table" class="w-full bg-gray-800 rounded-lg overflow-hidden hidden">
+                    <thead>
+                        <tr class="gradient-bg">
+                            <th class="px-4 py-3 text-left">Subject</th>
+                            <th class="px-4 py-3 text-left">Score</th>
+                            <th class="px-4 py-3 text-left">Grade</th>
+                            <th class="px-4 py-3 text-left">Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody id="results-body">
+                        <!-- Results will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="performance-summary" class="mt-8 hidden">
+                <h3 class="text-lg font-semibold mb-4 flex items-center">
+                    <i class="fas fa-star mr-2"></i> Performance Summary
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="glassy rounded-lg p-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-400 text-sm">Average Score</p>
+                                <p class="text-2xl font-bold" id="average-score">-</p>
+                            </div>
+                            <div class="gradient-bg p-2 rounded-lg">
+                                <i class="fas fa-percentage text-white"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="glassy rounded-lg p-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-400 text-sm">Highest Score</p>
+                                <p class="text-2xl font-bold" id="highest-score">-</p>
+                            </div>
+                            <div class="gradient-bg p-2 rounded-lg">
+                                <i class="fas fa-trophy text-white"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="glassy rounded-lg p-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-400 text-sm">Overall Grade</p>
+                                <p class="text-2xl font-bold" id="overall-grade">-</p>
+                            </div>
+                            <div class="gradient-bg p-2 rounded-lg">
+                                <i class="fas fa-award text-white"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Exam History -->
+        <div class="glassy rounded-xl p-6 mt-6 slide-in" style="animation-delay: 0.3s;">
+            <h2 class="text-xl font-semibold mb-6 flex items-center">
+                <i class="fas fa-history mr-2"></i> Exam History
+            </h2>
+            
+            <div class="space-y-4" id="exam-history">
+                <div class="text-center py-8 text-gray-500">
+                    <i class="fas fa-clock text-4xl mb-4 opacity-50"></i>
+                    <p>No exam history available yet</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Initialize Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCBQMVj3pp_EjaAj6pTiG32xRBB7eVYPKM",
+            authDomain: "eauils.firebaseapp.com",
+            projectId: "eauils",
+            storageBucket: "eauils.appspot.com",
+            messagingSenderId: "318437093898",
+            appId: "1:318437093898:web:9458db63b467f45887e5f3",
+            measurementId: "G-X9NHX0N46R"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        
+        // DOM Elements
+        const loginSection = document.getElementById('login-section');
+        const dashboardSection = document.getElementById('dashboard-section');
+        const loginForm = document.getElementById('login-form');
+        const studentIdInput = document.getElementById('student-id');
+        const studentNameInput = document.getElementById('student-name');
+        const logoutBtn = document.getElementById('logout-btn');
+        const welcomeMessage = document.getElementById('welcome-message');
+        const displayId = document.getElementById('display-id');
+        const displayName = document.getElementById('display-name');
+        const displayClass = document.getElementById('display-class');
+        const examSelect = document.getElementById('exam-select');
+        const resultsTable = document.getElementById('results-table');
+        const resultsBody = document.getElementById('results-body');
+        const noResultsMessage = document.getElementById('no-results-message');
+        const performanceSummary = document.getElementById('performance-summary');
+        const averageScore = document.getElementById('average-score');
+        const highestScore = document.getElementById('highest-score');
+        const overallGrade = document.getElementById('overall-grade');
+        const examHistory = document.getElementById('exam-history');
+        const toastContainer = document.getElementById('toast-container');
+        const bubblesContainer = document.getElementById('bubbles');
+        
+        // State
+        let currentStudent = null;
+        let studentData = null;
+        let exams = [];
+        let results = {};
+        
+        // Create floating bubbles
+        function createBubbles() {
+            const bubbleCount = 15;
+            for (let i = 0; i < bubbleCount; i++) {
+                const bubble = document.createElement('div');
+                bubble.classList.add('bubble');
+                
+                // Random size between 50px and 150px
+                const size = Math.random() * 100 + 50;
+                bubble.style.width = `${size}px`;
+                bubble.style.height = `${size}px`;
+                
+                // Random position
+                bubble.style.left = `${Math.random() * 100}%`;
+                bubble.style.top = `${Math.random() * 100}%`;
+                
+                // Random animation delay
+                bubble.style.animationDelay = `${Math.random() * 15}s`;
+                
+                bubblesContainer.appendChild(bubble);
+            }
+        }
+        
+        // Show toast notification
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.classList.add('toast', 'glassy', 'p-3', 'rounded-lg', 'flex', 'items-center');
+            
+            let iconColor = 'text-blue-400';
+            if (type === 'error') iconColor = 'text-red-400';
+            if (type === 'warning') iconColor = 'text-yellow-400';
+            
+            toast.innerHTML = `
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-times-circle' : 'fa-exclamation-triangle'} ${iconColor} mr-2"></i>
+                <span>${message}</span>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            // Remove toast after animation
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+        
+        // Calculate grade from score
+        function calculateGrade(score) {
+            if (score >= 90) return { grade: 'A', class: 'grade-A' };
+            if (score >= 80) return { grade: 'B', class: 'grade-B' };
+            if (score >= 70) return { grade: 'C', class: 'grade-C' };
+            if (score >= 60) return { grade: 'D', class: 'grade-D' };
+            return { grade: 'F', class: 'grade-F' };
+        }
+        
+        // Get remark based on grade
+        function getRemark(grade) {
+            switch(grade) {
+                case 'A': return 'Excellent';
+                case 'B': return 'Very Good';
+                case 'C': return 'Good';
+                case 'D': return 'Pass';
+                case 'F': return 'Fail';
+                default: return '-';
+            }
+        }
+        
+        // Login student
+        function loginStudent(studentId, studentName) {
+            // First check if student exists in any class
+            db.collectionGroup('students')
+                .where('studentId', '==', studentId)
+                .where('name', '==', studentName)
+                .get()
+                .then((querySnapshot) => {
+                    if (querySnapshot.empty) {
+                        showToast('Student not found. Please check your ID and name.', 'error');
+                        return;
+                    }
+                    
+                    // Student found
+                    const doc = querySnapshot.docs[0];
+                    currentStudent = {
+                        id: doc.id,
+                        studentId: doc.data().studentId,
+                        name: doc.data().name,
+                        classId: doc.ref.parent.parent.id
+                    };
+                    
+                    // Get class name
+                    return db.collection('classes').doc(currentStudent.classId).get();
+                })
+                .then((classDoc) => {
+                    if (!classDoc.exists) {
+                        showToast('Class information not found', 'error');
+                        return;
+                    }
+                    
+                    // Update student data with class name
+                    currentStudent.className = classDoc.data().name;
+                    
+                    // Update UI
+                    welcomeMessage.textContent = `Welcome back, ${currentStudent.name}`;
+                    displayId.textContent = currentStudent.studentId;
+                    displayName.textContent = currentStudent.name;
+                    displayClass.textContent = currentStudent.className;
+                    
+                    // Switch to dashboard
+                    loginSection.classList.add('hidden');
+                    dashboardSection.classList.remove('hidden');
+                    
+                    // Load exams and results
+                    loadExams();
+                    
+                    showToast('Login successful');
+                })
+                .catch((error) => {
+                    showToast('Error logging in', 'error');
+                    console.error("Error logging in: ", error);
+                });
+        }
+        
+        // Load exams for student's class
+        function loadExams() {
+            examSelect.innerHTML = '<option value="">Select an exam</option>';
+            examHistory.innerHTML = '<div class="text-center py-8 text-gray-500"><i class="fas fa-clock text-4xl mb-4 opacity-50"></i><p>Loading exam history...</p></div>';
+            
+            db.collection('classes').doc(currentStudent.classId).collection('exams')
+                .orderBy('date', 'desc')
+                .get()
+                .then((querySnapshot) => {
+                    exams = [];
+                    examHistory.innerHTML = '';
+                    
+                    if (querySnapshot.empty) {
+                        examHistory.innerHTML = '<div class="text-center py-8 text-gray-500"><i class="fas fa-clock text-4xl mb-4 opacity-50"></i><p>No exam history available yet</p></div>';
+                        return;
+                    }
+                    
+                    querySnapshot.forEach((doc) => {
+                        const exam = {
+                            id: doc.id,
+                            ...doc.data(),
+                            date: doc.data().date.toDate()
+                        };
+                        
+                        exams.push(exam);
+                        
+                        // Add to exam select dropdown
+                        const option = document.createElement('option');
+                        option.value = doc.id;
+                        option.textContent = exam.name;
+                        examSelect.appendChild(option);
+                        
+                        // Add to exam history
+                        const examItem = document.createElement('div');
+                        examItem.classList.add('glassy', 'p-4', 'rounded-lg', 'hover:bg-gray-800', 'transition', 'cursor-pointer');
+                        examItem.innerHTML = `
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <h3 class="font-medium">${exam.name}</h3>
+                                    <p class="text-sm text-gray-400">${exam.date.toLocaleDateString()}</p>
+                                </div>
+                                <i class="fas fa-chevron-right text-gray-400"></i>
+                            </div>
+                        `;
+                        
+                        examItem.addEventListener('click', () => {
+                            examSelect.value = exam.id;
+                            loadResults(exam.id);
+                        });
+                        
+                        examHistory.appendChild(examItem);
+                    });
+                })
+                .catch((error) => {
+                    showToast('Failed to load exams', 'error');
+                    console.error("Error loading exams: ", error);
+                });
+        }
+        
+        // Load results for selected exam
+        function loadResults(examId) {
+            resultsTable.classList.add('hidden');
+            noResultsMessage.classList.remove('hidden');
+            performanceSummary.classList.add('hidden');
+            
+            resultsBody.innerHTML = '';
+            
+            const exam = exams.find(e => e.id === examId);
+            if (!exam) return;
+            
+            noResultsMessage.innerHTML = '<i class="fas fa-spinner fa-spin text-4xl mb-4 opacity-50"></i><p>Loading results...</p>';
+            
+            db.collection('classes').doc(currentStudent.classId)
+                .collection('exams').doc(examId)
+                .collection('results').doc(currentStudent.id)
+                .get()
+                .then((doc) => {
+                    if (!doc.exists) {
+                        noResultsMessage.innerHTML = '<i class="fas fa-book-open text-4xl mb-4 opacity-50"></i><p>No results available for this exam</p>';
+                        return;
+                    }
+                    
+                    const resultData = doc.data();
+                    const subjects = Object.keys(resultData).filter(key => key !== 'id' && key !== 'name');
+                    
+                    if (subjects.length === 0) {
+                        noResultsMessage.innerHTML = '<i class="fas fa-book-open text-4xl mb-4 opacity-50"></i><p>No results available for this exam</p>';
+                        return;
+                    }
+                    
+                    // Calculate performance metrics
+                    let totalScore = 0;
+                    let highestScoreValue = 0;
+                    let lowestScoreValue = 100;
+                    let gradeCounts = { A: 0, B: 0, C: 0, D: 0, F: 0 };
+                    
+                    subjects.forEach(subject => {
+                        const score = parseFloat(resultData[subject]) || 0;
+                        totalScore += score;
+                        
+                        if (score > highestScoreValue) highestScoreValue = score;
+                        if (score < lowestScoreValue) lowestScoreValue = score;
+                        
+                        const gradeInfo = calculateGrade(score);
+                        gradeCounts[gradeInfo.grade]++;
+                        
+                        const row = document.createElement('tr');
+                        row.classList.add('border-b', 'border-gray-700', 'hover:bg-gray-800');
+                        row.innerHTML = `
+                            <td class="px-4 py-3 font-medium">${subject}</td>
+                            <td class="px-4 py-3">${score}</td>
+                            <td class="px-4 py-3 ${gradeInfo.class} font-bold">${gradeInfo.grade}</td>
+                            <td class="px-4 py-3">${getRemark(gradeInfo.grade)}</td>
+                        `;
+                        resultsBody.appendChild(row);
+                    });
+                    
+                    const average = totalScore / subjects.length;
+                    const overallGradeInfo = calculateGrade(average);
+                    
+                    // Update performance summary
+                    averageScore.textContent = average.toFixed(1);
+                    highestScore.textContent = highestScoreValue.toFixed(1);
+                    overallGrade.textContent = overallGradeInfo.grade;
+                    overallGrade.className = `text-2xl font-bold ${overallGradeInfo.class}`;
+                    
+                    // Show results
+                    resultsTable.classList.remove('hidden');
+                    noResultsMessage.classList.add('hidden');
+                    performanceSummary.classList.remove('hidden');
+                })
+                .catch((error) => {
+                    noResultsMessage.innerHTML = '<i class="fas fa-exclamation-triangle text-4xl mb-4 opacity-50"></i><p>Error loading results</p>';
+                    showToast('Failed to load results', 'error');
+                    console.error("Error loading results: ", error);
+                });
+        }
+        
+        // Logout student
+        function logout() {
+            currentStudent = null;
+            studentData = null;
+            
+            // Reset form
+            studentIdInput.value = '';
+            studentNameInput.value = '';
+            
+            // Reset dashboard
+            welcomeMessage.textContent = 'Welcome back';
+            displayId.textContent = '-';
+            displayName.textContent = '-';
+            displayClass.textContent = '-';
+            examSelect.innerHTML = '<option value="">Select an exam</option>';
+            resultsTable.classList.add('hidden');
+            noResultsMessage.classList.remove('hidden');
+            performanceSummary.classList.add('hidden');
+            
+            // Switch to login
+            dashboardSection.classList.add('hidden');
+            loginSection.classList.remove('hidden');
+            
+            showToast('Logged out successfully');
+        }
+        
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            createBubbles();
+            
+            // Add animation class to all slide-in elements
+            document.querySelectorAll('.slide-in').forEach((el, index) => {
+                el.style.animationDelay = `${index * 0.1}s`;
+            });
+        });
+        
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const studentId = studentIdInput.value.trim();
+            const studentName = studentNameInput.value.trim();
+            
+            if (!studentId) {
+                showToast('Please enter your student ID', 'warning');
+                return;
+            }
+            
+            if (!studentName) {
+                showToast('Please enter your name', 'warning');
+                return;
+            }
+            
+            loginStudent(studentId, studentName);
+        });
+        
+        logoutBtn.addEventListener('click', logout);
+        
+        examSelect.addEventListener('change', (e) => {
+            if (e.target.value) {
+                loadResults(e.target.value);
+            } else {
+                resultsTable.classList.add('hidden');
+                noResultsMessage.classList.remove('hidden');
+                performanceSummary.classList.add('hidden');
+                noResultsMessage.innerHTML = '<i class="fas fa-book-open text-4xl mb-4 opacity-50"></i><p>Select an exam to view results</p>';
+            }
+        });
+        
+        // Allow pressing Enter in inputs to submit forms
+        studentIdInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') loginForm.requestSubmit();
+        });
+        
+        studentNameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') loginForm.requestSubmit();
+        });
+    </script>
+</body>
+</html>

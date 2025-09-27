@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gourmet POS System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+    
+    <style>
+        /* Bubble animation */
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) translateX(0);
+            }
+            25% {
+                transform: translateY(-20px) translateX(10px);
+            }
+            50% {
+                transform: translateY(-10px) translateX(-10px);
+            }
+            75% {
+                transform: translateY(-20px) translateX(0);
+            }
+        }
+
+        .bubble {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            filter: blur(5px);
+            animation: float 8s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        /* Glass effect */
+        .glass-effect {
+            background: rgba(15, 15, 25, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        /* Neon glow */
+        .glow {
+            text-shadow: 0 0 10px rgba(255, 200, 0, 0.8);
+        }
+
+        /* Floating elements */
+        .float {
+            transition: all 0.3s ease;
+        }
+
+        .float:hover {
+            transform: translateY(-5px);
+        }
+
+        /* Tab content animation */
+        .tab-content {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Scrollbar styling */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+        }
+
+        /* Gradient text */
+        .gradient-text {
+            background: linear-gradient(90deg, #f59e0b, #fbbf24, #f59e0b);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            background-size: 200% 200%;
+            animation: gradient 2s ease infinite;
+        }
+
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Shimmer effect for buttons */
+        @keyframes shimmer {
+            0% { opacity: 0.3; }
+            50% { opacity: 0.7; }
+            100% { opacity: 0.3; }
+        }
+
+        .shimmer {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .shimmer:after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        /* Custom checkbox */
+        .custom-checkbox input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+
+        .custom-checkbox .checkmark {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 20px;
+            width: 20px;
+            background-color: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .custom-checkbox:hover input ~ .checkmark {
+            background-color: rgba(255,255,255,0.2);
+        }
+
+        .custom-checkbox input:checked ~ .checkmark {
+            background-color: #f59e0b;
+            border-color: #f59e0b;
+        }
+
+        .custom-checkbox .checkmark:after {
+            content: "";
+            position: absolute;
+            display: none;
+        }
+
+        .custom-checkbox input:checked ~ .checkmark:after {
+            display: block;
+        }
+
+        .custom-checkbox .checkmark:after {
+            left: 7px;
+            top: 3px;
+            width: 5px;
+            height: 10px;
+            border: solid black;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        /* Login form styling */
+        .login-container {
+            animation: slideUp 0.5s ease-in-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Animation for notifications */
+        @keyframes slide-in {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+
+        @keyframes slide-out {
+            from { transform: translateX(0); }
+            to { transform: translateX(100%); }
+        }
+
+        .animate-slide-in {
+            animation: slide-in 0.3s forwards;
+        }
+
+        .animate-slide-out {
+            animation: slide-out 0.3s forwards;
+        }
+    </style>
+</head>
+<body class="bg-[url('https://t3.ftcdn.net/jpg/08/30/36/24/360_F_830362443_3P82WDlEppAJDZp1n0o6MZMTyiq69kwp.jpg')] bg-cover bg-center min-h-screen overflow-x-hidden">
+    <!-- Bubble animations -->
+    <div class="bubble" style="width: 150px; height: 150px; top: 10%; left: 5%; animation-delay: 0s;"></div>
+    <div class="bubble" style="width: 120px; height: 120px; top: 70%; left: 10%; animation-delay: 1s;"></div>
+    <div class="bubble" style="width: 80px; height: 80px; top: 30%; right: 15%; animation-delay: 2s;"></div>
+    <div class="bubble" style="width: 100px; height: 100px; top: 80%; right: 10%; animation-delay: 3s;"></div>
+    <div class="bubble" style="width: 60px; height: 60px; top: 50%; left: 20%; animation-delay: 4s;"></div>
+
+    <!-- Login Screen -->
+    <div id="login-screen" class="fixed inset-0 flex items-center justify-center z-50">
+        <div class="glass-effect rounded-2xl p-8 w-full max-w-md login-container border border-gray-700">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-white mb-2">servelQ <span class="gradient-text">POS</span></h2>
+                <p class="text-gray-400">Restaurant Management System</p>
+            </div>
+            <form id="login-form" class="space-y-6">
+                <div>
+                    <label class="block text-gray-300 mb-2">Email Address</label>
+                    <input type="email" id="login-email" required class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-all" placeholder="your@email.com">
+                </div>
+                <div>
+                    <label class="block text-gray-300 mb-2">Password</label>
+                    <input type="password" id="login-password" required class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-all" placeholder="••••••••">
+                </div>
+                <button type="submit" class="w-full bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 text-white py-3 px-4 rounded-lg font-bold flex items-center justify-center transition-all float hover:shadow-lg hover:shadow-yellow-500/20">
+                    <i class="fas fa-sign-in-alt mr-2"></i> Login
+                </button>
+                <p class="text-gray-400 text-sm text-center">Contact support if you need account access</p>
+            </form>
+            <div id="login-error" class="mt-4 text-red-400 text-center hidden"></div>
+        </div>
+    </div>
+
+    <!-- Main Application (initially hidden) -->
+    <div id="app-container" class="hidden">
+        <div class="container mx-auto px-4 py-8 relative">
+            <!-- Main Application Container -->
+            <div class="glass-effect rounded-3xl overflow-hidden min-h-[85vh] backdrop-blur-lg">
+                <!-- Header -->
+                <header class="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-800 p-6 border-b border-gray-700">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h1 class="text-3xl font-bold text-white">servelQ <span class="gradient-text">POS</span></h1>
+                            <p class="text-sm text-gray-400 flex items-center">
+                                <span class="w-2 h-2 bg-yellow-400 rounded-full mr-2 shimmer"></span>
+                                <span id="restaurant-name">Restaurant Management System</span>
+                            </p>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <div class="text-right">
+                                <p class="text-gray-300 font-medium">Current Session</p>
+                                <p class="text-gray-400 text-sm" id="current-time">Loading...</p>
+                            </div>
+                            <div class="relative group">
+                                <button id="user-menu-btn" class="bg-gray-700 bg-opacity-70 rounded-full p-3 hover:bg-opacity-90 transition-all cursor-pointer float">
+                                    <i class="fas fa-user text-yellow-400 text-xl"></i>
+                                </button>
+                                <div id="user-menu" class="hidden absolute right-0 mt-2 w-48 bg-gray-800 rounded-md shadow-lg z-10 border border-gray-700">
+                                    <div class="p-4 border-b border-gray-700">
+                                        <p class="text-white font-medium" id="user-email"></p>
+                                        <p class="text-gray-400 text-sm">Restaurant Account</p>
+                                    </div>
+                                    <button id="logout-btn" class="w-full text-left px-4 py-2 text-gray-300 hover:bg-gray-700 flex items-center">
+                                        <i class="fas fa-sign-out-alt mr-2 text-red-400"></i> Logout
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabs -->
+                    <div class="flex mt-6">
+                        <button onclick="openTab('pos')" id="pos-tab" class="px-6 py-3 font-medium text-white bg-gradient-to-r from-gray-800 to-gray-700 rounded-t-lg mr-1 tab-button border-l border-t border-r border-gray-600 relative overflow-hidden group">
+                            <span class="relative z-10">POS</span>
+                            <span class="absolute bottom-0 left-0 w-full h-0.5 bg-yellow-400 group-hover:h-1 transition-all duration-300"></span>
+                        </button>
+                        <button onclick="openTab('foods')" id="foods-tab" class="px-6 py-3 font-medium text-gray-400 hover:text-white transition-colors tab-button group relative">
+                            <span class="relative z-10">Menu Management</span>
+                            <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-yellow-400 group-hover:w-full group-hover:h-1 transition-all duration-300"></span>
+                        </button>
+                    </div>
+                </header>
+
+                <!-- Main Content -->
+                <main class="p-6">
+                    <!-- POS Tab -->
+                    <div id="pos" class="tab-content">
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
+                            <!-- Left Section - Food Items -->
+                            <div class="lg:col-span-2">
+                                <!-- Categories -->
+                                <div class="flex space-x-3 mb-6 overflow-x-auto pb-2 custom-scroll">
+                                    <button class="px-4 py-2 bg-gray-800 text-yellow-400 rounded-full whitespace-nowrap active border border-yellow-400 glow" data-category="all">All Items</button>
+                                    <button class="px-4 py-2 bg-gray-800 bg-opacity-60 text-gray-300 hover:text-yellow-300 rounded-full whitespace-nowrap transition-colors border border-gray-600 hover:border-yellow-400" data-category="appetizer">Appetizers</button>
+                                    <button class="px-4 py-2 bg-gray-800 bg-opacity-60 text-gray-300 hover:text-yellow-300 rounded-full whitespace-nowrap transition-colors border border-gray-600 hover:border-yellow-400" data-category="main">Main Course</button>
+                                    <button class="px-4 py-2 bg-gray-800 bg-opacity-60 text-gray-300 hover:text-yellow-300 rounded-full whitespace-nowrap transition-colors border border-gray-600 hover:border-yellow-400" data-category="dessert">Desserts</button>
+                                    <button class="px-4 py-2 bg-gray-800 bg-opacity-60 text-gray-300 hover:text-yellow-300 rounded-full whitespace-nowrap transition-colors border border-gray-600 hover:border-yellow-400" data-category="drink">Drinks</button>
+                                </div>
+                                                                
+                                <!-- Food Items Grid -->
+                                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4" id="food-items-container">
+                                    <!-- Food items will be dynamically inserted here -->
+                                </div>
+                            </div>
+                                                            
+                            <!-- Right Section - Order Summary -->
+                            <div class="bg-gray-900 bg-opacity-50 rounded-xl p-6 h-full border border-gray-700">
+                                <h2 class="text-xl font-bold text-white mb-4 flex items-center">
+                                    <i class="fas fa-receipt mr-2 text-yellow-400"></i>
+                                    <span class="border-b border-yellow-400 pb-1">Order Summary</span>
+                                </h2>
+                                                                
+                                <!-- Order Details -->
+                                <div class="bg-gray-800 bg-opacity-40 rounded-lg p-4 mb-4 border border-gray-700 custom-scroll" style="max-height: 300px; overflow-y: auto;">
+                                    <div class="text-sm text-gray-300 flex justify-between mb-2 font-medium">
+                                        <span>Item</span>
+                                        <div class="flex space-x-8">
+                                            <span>Qty</span>
+                                            <span>Price</span>
+                                            <span>Total</span>
+                                        </div>
+                                    </div>
+                                    <div id="order-items">
+                                        <p class="text-center text-gray-400 py-4">No items added yet</p>
+                                    </div>
+                                </div>
+                                                                
+                                <!-- Order Totals -->
+                                <div class="space-y-2 mb-6 bg-gray-800 bg-opacity-30 p-4 rounded-lg border border-gray-700">
+                                    <div class="flex justify-between text-gray-300">
+                                        <span>Subtotal:</span>
+                                        <span id="subtotal">$0.00</span>
+                                    </div>
+                                    <div class="flex justify-between text-gray-300">
+                                        <span>Tax (10%):</span>
+                                        <span id="tax">$0.00</span>
+                                    </div>
+                                    <hr class="border-gray-700 my-2">
+                                    <div class="flex justify-between text-white font-bold">
+                                        <span class="text-yellow-400">Total:</span>
+                                        <span id="total" class="text-yellow-400">$0.00</span>
+                                    </div>
+                                </div>
+                                                                
+                                <!-- Action Buttons -->
+                                <div class="grid grid-cols-2 gap-3 mb-4">
+                                    <button onclick="voidOrder()" class="bg-red-900 hover:bg-red-800 text-white py-2 px-4 rounded-lg flex items-center justify-center transition-all float border border-red-700 hover:border-red-600">
+                                        <i class="fas fa-trash-alt mr-2"></i> Void
+                                    </button>
+                                    <button onclick="printReceipt()" class="bg-green-900 hover:bg-green-800 text-white py-2 px-4 rounded-lg flex items-center justify-center transition-all float border border-green-700 hover:border-green-600">
+                                        <i class="fas fa-print mr-2"></i> Print
+                                    </button>
+                                </div>
+                                <button onclick="checkout()" class="w-full bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 text-white py-3 px-4 rounded-lg font-bold flex items-center justify-center transition-all float hover:shadow-lg hover:shadow-yellow-500/20">
+                                    <i class="fas fa-credit-card mr-2"></i> Process Payment ($<span id="payment-total" class="font-extrabold">0.00</span>)
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                                                    
+                    <!-- Foods Management Tab -->
+                    <div id="foods" class="tab-content hidden">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                            <h2 class="text-2xl font-bold text-white flex items-center">
+                                <i class="fas fa-utensils mr-3 text-yellow-400"></i>
+                                <span class="border-b border-yellow-400 pb-1">Menu Management</span>
+                            </h2>
+                            <button onclick="openAddFoodModal()" class="bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 text-white py-2 px-4 rounded-lg flex items-center transition-all float">
+                                <i class="fas fa-plus mr-2"></i> Add New Item
+                            </button>
+                        </div>
+
+                        <!-- Search and Filter -->
+                        <div class="bg-gray-800 bg-opacity-30 rounded-lg p-4 mb-6 border border-gray-700">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-gray-300 mb-2">Search</label>
+                                    <div class="relative">
+                                        <input type="text" id="food-search" class="w-full bg-gray-900 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 text-white pl-10 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-all" placeholder="Search food items...">
+                                        <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-gray-300 mb-2">Category</label>
+                                    <select id="food-category-filter" class="w-full bg-gray-900 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 text-white appearance-none pr-8 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-all">
+                                        <option value="all">All Categories</option>
+                                        <option value="appetizer">Appetizers</option>
+                                        <option value="main">Main Course</option>
+                                        <option value="dessert">Desserts</option>
+                                        <option value="drink">Drinks</option>
+                                    </select>
+                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400 mt-2">
+                                        <i class="fas fa-chevron-down"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-gray-300 mb-2">Status</label>
+                                    <select id="food-status-filter" class="w-full bg-gray-900 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 text-white appearance-none pr-8 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-all">
+                                        <option value="all">All Status</option>
+                                        <option value="active">Active</option>
+                                        <option value="inactive">Inactive</option>
+                                    </select>
+                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400 mt-2">
+                                        <i class="fas fa-chevron-down"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Food Items Table -->
+                        <div class="overflow-x-auto bg-gray-800 bg-opacity-30 rounded-lg border border-gray-700">
+                            <table class="min-w-full divide-y divide-gray-700">
+                                <thead class="bg-gray-800 bg-opacity-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Image</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Name</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Category</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Price</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Status</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-gray-800 bg-opacity-10 divide-y divide-gray-700 custom-scroll" style="max-height: 400px; overflow-y: auto;" id="food-management-items">
+                                    <!-- Food items will be dynamically inserted here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+
+        <!-- Add Food Modal -->
+        <div id="add-food-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden backdrop-blur-sm">
+            <div class="glass-effect rounded-xl p-6 w-full max-w-2xl border border-gray-700 transform transition-all duration-300 scale-95 hover:scale-100">
+                <div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-4">
+                    <h3 class="text-2xl font-bold text-white flex items-center">
+                        <i class="fas fa-plus-circle mr-2 text-yellow-400"></i>
+                        <span class="border-b border-yellow-400 pb-1">Add New Menu Item</span>
+                    </h3>
+                    <button onclick="closeAddFoodModal()" class="text-gray-400 hover:text-white text-2xl transition-colors">&times;</button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <div class="mb-4">
+                            <label class="block text-gray-300 mb-2">Item Name</label>
+                            <input type="text" id="add-food-name" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-all">
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-gray-300 mb-2">Category</label>
+                            <select id="add-food-category" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 text-white appearance-none pr-8 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-all">
+                                <option value="appetizer">Appetizer</option>
+                                <option value="main">Main Course</option>
+                                <option value="dessert">Dessert</option>
+                                <option value="drink">Drink</option>
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-gray-300 mb-2">Price ($)</label>
+                            <input type="number" id="add-food-price" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-all">
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-gray-300 mb-2">Status</label>
+                            <div class="flex items-center space-x-4">
+                                <label class="custom-checkbox inline-flex items-center cursor-pointer">
+                                    <input type="radio" name="status" value="active" checked>
+                                    <span class="checkmark rounded-full mr-2"></span>
+                                    <span class="text-gray-300">Active</span>
+                                </label>
+                                <label class="custom-checkbox inline-flex items-center cursor-pointer">
+                                    <input type="radio" name="status" value="inactive">
+                                    <span class="checkmark rounded-full mr-2"></span>
+                                    <span class="text-gray-300">Inactive</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="mb-4">
+                            <label class="block text-gray-300 mb-2">Description</label>
+                            <textarea id="add-food-description" rows="4" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-all"></textarea>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-gray-300 mb-2">Image URL</label>
+                            <input type="text" id="add-food-image" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-all">
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-gray-300 mb-2">Preview</label>
+                            <div class="w-32 h-32 bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg flex items-center justify-center overflow-hidden" id="image-preview">
+                                <i class="fas fa-image text-gray-600 text-3xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-3 mt-6 border-t border-gray-700 pt-4">
+                    <button onclick="closeAddFoodModal()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-all border border-gray-600 hover:border-gray-500">Cancel</button>
+                    <button onclick="saveNewFoodItem()" class="px-4 py-2 bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 text-white rounded-lg transition-all hover:shadow-lg hover:shadow-yellow-500/20">
+                        <i class="fas fa-save mr-2"></i> Save Item
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Modal -->
+        <div id="payment-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden backdrop-blur-sm">
+            <div class="glass-effect rounded-xl p-6 w-full max-w-md border border-gray-700 transform transition-all duration-300 scale-95 hover:scale-100">
+                <div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-4">
+                    <h3 class="text-2xl font-bold text-white flex items-center">
+                        <i class="fas fa-credit-card mr-2 text-yellow-400"></i>
+                        <span class="border-b border-yellow-400 pb-1">Process Payment</span>
+                    </h3>
+                    <button onclick="closePaymentModal()" class="text-gray-400 hover:text-white text-2xl transition-colors">&times;</button>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-gray-300 mb-2">Total Amount</label>
+                    <div class="relative">
+                        <input type="text" id="payment-amount" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-3 text-white font-bold text-xl pr-12" readonly>
+                        <span class="absolute right-3 top-3 text-gray-400 font-bold">USD</span>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-gray-300 mb-2">Payment Method</label>
+                    <div class="grid grid-cols-3 gap-2 mb-3">
+                        <button onclick="selectPaymentMethod('cash')" class="payment-method-btn py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg border border-gray-700 hover:border-yellow-400 transition-all float text-sm">
+                            <i class="fas fa-money-bill-wave mr-1"></i> Cash
+                        </button>
+                        <button onclick="selectPaymentMethod('card')" class="payment-method-btn py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg border border-gray-700 hover:border-yellow-400 transition-all float text-sm">
+                            <i class="fas fa-credit-card mr-1"></i> Card
+                        </button>
+                        <button onclick="selectPaymentMethod('online')" class="payment-method-btn py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg border border-gray-700 hover:border-yellow-400 transition-all float text-sm">
+                            <i class="fas fa-mobile-alt mr-1"></i> Online
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mb-4 hidden" id="cash-payment-section">
+                    <label class="block text-gray-300 mb-2">Cash Received</label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-3 text-gray-400">$</span>
+                        <input type="number" id="cash-received" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 pl-8 text-white">
+                    </div>
+                    <div class="flex justify-between text-gray-300 mt-2 bg-gray-800 bg-opacity-30 p-2 rounded">
+                        <span>Change:</span>
+                        <span id="cash-change" class="font-medium">$0.00</span>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-3 mt-6 border-t border-gray-700 pt-4">
+                    <button onclick="closePaymentModal()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-all border border-gray-600 hover:border-gray-500">Cancel</button>
+                    <button onclick="completePayment()" class="px-4 py-2 bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 text-white rounded-lg transition-all hover:shadow-lg hover:shadow-yellow-500/20">
+                        <i class="fas fa-check-circle mr-2"></i> Complete Payment
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Receipt Modal -->
+        <div id="receipt-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden backdrop-blur-sm">
+            <div class="bg-gray-900 text-gray-200 rounded-xl p-6 w-full max-w-sm border-4 border-yellow-400 transform transition-all duration-300 scale-95 hover:scale-100">
+                <div class="text-center mb-4">
+                    <h3 class="text-xl font-bold text-yellow-400" id="receipt-restaurant-name">GOURMET RESTAURANT</h3>
+                    <p class="text-sm text-gray-300" id="receipt-restaurant-address">123 Fine Dining Street</p>
+                    <p class="text-sm text-gray-300" id="receipt-restaurant-contact">Tel: (123) 456-7890</p>
+                </div>
+                <hr class="my-2 border-yellow-400 border-opacity-30 border-dashed">
+                <div class="text-center text-xs mb-2">
+                    <p id="receipt-date" class="text-gray-400">Date: Loading...</p>
+                    <p id="receipt-time" class="text-gray-400">Time: Loading...</p>
+                    <p class="text-gray-300">Transaction #<span id="receipt-number" class="font-bold">00123</span></p>
+                </div>
+                <hr class="my-2 border-yellow-400 border-opacity-30 border-dashed">
+                <div class="mb-3 text-xs" id="receipt-items">
+                    <!-- Items will be shown here -->
+                </div>
+                <hr class="my-2 border-yellow-400 border-opacity-30 border-dashed">
+                <div class="text-right text-sm mb-4">
+                    <p class="text-gray-300">Subtotal: <span id="receipt-subtotal" class="font-medium">$0.00</span></p>
+                    <p class="text-gray-300">Tax (10%): <span id="receipt-tax" class="font-medium">$0.00</span></p>
+                    <p class="text-yellow-400 font-bold mt-1">Total: <span id="receipt-total">$0.00</span></p>
+                    <p class="mt-2 text-gray-400 text-xs" id="receipt-payment-method">Payment Method: Cash</p>
+                    <p class="text-gray-400 text-xs" id="receipt-cash-received">Cash Received: $0.00</p>
+                    <p class="text-gray-400 text-xs" id="receipt-change">Change: $0.00</p>
+                </div>
+                <hr class="my-2 border-yellow-400 border-opacity-30 border-dashed">
+                <div class="text-center text-xs mt-4 text-gray-400">
+                    <p>Thank you for dining with us!</p>
+                    <p>Please come again soon</p>
+                    <div class="mt-2 flex justify-center">
+                        <i class="fas fa-star text-yellow-400 mx-1"></i>
+                        <i class="fas fa-star text-yellow-400 mx-1"></i>
+                        <i class="fas fa-star text-yellow-400 mx-1"></i>
+                        <i class="fas fa-star text-yellow-400 mx-1"></i>
+                        <i class="fas fa-star text-yellow-400 mx-1"></i>
+                    </div>
+                </div>
+                <div class="flex justify-center space-x-4 mt-6">
+                    <button onclick="closeReceiptModal()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm transition-all border border-gray-600 hover:border-gray-500">
+                        <i class="fas fa-times mr-1"></i> Close
+                    </button>
+                    <button onclick="printActualReceipt()" class="px-4 py-2 bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 text-white rounded-lg text-sm transition-all hover:shadow-lg hover:shadow-yellow-500/20">
+                        <i class="fas fa-print mr-1"></i> Print
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // App constants
+        const APP_CONFIG = {
+            taxRate: 0.1
+        };
+        
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyD6w_yN-dVITdp08B2qetFAmF9_JfS45wo",
+            authDomain: "hagar-d1149.firebaseapp.com",
+            projectId: "hagar-d1149",
+            storageBucket: "hagar-d1149.appspot.com",
+            messagingSenderId: "415007683735",
+            appId: "1:415007683735:web:d56a9449324f75371ee5d2",
+            measurementId: "G-K4LZVPWZJ5"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // Restaurant data and menu items
+        let restaurantData = {
+            name: "",
+            address: "",
+            contact: "",
+            logo: ""
+        };
+                
+        // Current Order
+        let currentOrder = [];
+        let selectedPaymentMethod = 'cash';
+        let transactionCounter = 123;
+        let currentEditingItemId = null;
+        let menuItemsListener = null;
+        let currentUserId = null;
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            updateTime();
+            setInterval(updateTime, 1000);
+            setupCategoryButtons();
+                        
+            // Set POS tab as active by default
+            document.getElementById('pos-tab').classList.add('bg-gradient-to-r', 'from-gray-800', 'to-gray-700', 'text-white', 'border-gray-600');
+            document.getElementById('pos-tab').classList.remove('text-gray-400');
+                        
+            // User menu toggle
+            document.getElementById('user-menu-btn').addEventListener('click', function() {
+                document.getElementById('user-menu').classList.toggle('hidden');
+            });
+                        
+            // Image preview
+            document.getElementById('add-food-image').addEventListener('input', function() {
+                const url = this.value;
+                const preview = document.getElementById('image-preview');
+                if (url) {
+                    preview.style.backgroundImage = `url('${url}')`;
+                    preview.style.backgroundSize = 'cover';
+                    preview.style.backgroundPosition = 'center';
+                    preview.innerHTML = '';
+                } else {
+                    preview.style.backgroundImage = '';
+                    preview.innerHTML = '<i class="fas fa-image text-gray-600 text-3xl"></i>';
+                }
+            });
+                        
+            // Login form submission
+            document.getElementById('login-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const email = document.getElementById('login-email').value;
+                const password = document.getElementById('login-password').value;
+                                
+                auth.signInWithEmailAndPassword(email, password)
+                    .then((userCredential) => {
+                        // Signed in
+                        const user = userCredential.user;
+                        currentUserId = user.uid;
+                        loadRestaurantData(user.uid);
+                    })
+                    .catch((error) => {
+                        document.getElementById('login-error').textContent = error.message;
+                        document.getElementById('login-error').classList.remove('hidden');
+                    });
+            });
+                        
+            // Check auth state
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    // User is signed in
+                    currentUserId = user.uid;
+                    document.getElementById('login-screen').classList.add('hidden');
+                    document.getElementById('app-container').classList.remove('hidden');
+                    document.getElementById('user-email').textContent = user.email;
+                    loadRestaurantData(user.uid);
+                } else {
+                    // User is signed out - cleanup
+                    currentUserId = null;
+                    if (menuItemsListener) {
+                        menuItemsListener(); // Unsubscribe from previous listener
+                        menuItemsListener = null;
+                    }
+                    document.getElementById('login-screen').classList.remove('hidden');
+                    document.getElementById('app-container').classList.add('hidden');
+                    // Reset data
+                    restaurantData = { name: "", address: "", contact: "", logo: "" };
+                    currentOrder = [];
+                }
+            });
+            
+            // Logout functionality
+            document.getElementById('logout-btn').addEventListener('click', logout);
+        });
+
+        // Load restaurant data from Firestore
+        function loadRestaurantData(userId) {
+            db.collection("restaurants").doc(userId).get()
+                .then((doc) => {
+                    if (doc.exists) {
+                        restaurantData = doc.data();
+                        updateRestaurantUI();
+                        
+                        // Load menu items with real-time listener
+                        loadMenuItems(userId);
+                    } else {
+                        // Create a new restaurant document if it doesn't exist
+                        db.collection("restaurants").doc(userId).set({
+                            name: "New Restaurant",
+                            address: "",
+                            contact: "",
+                            logo: "",
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        }).then(() => {
+                            loadRestaurantData(userId); // Reload after creation
+                        });
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error getting restaurant data:", error);
+                    showAlert("Error loading restaurant data", "error");
+                });
+        }
+        
+        // Update restaurant information in UI
+        function updateRestaurantUI() {
+            document.getElementById('restaurant-name').textContent = restaurantData.name || "Restaurant Management System";
+            document.getElementById('receipt-restaurant-name').textContent = restaurantData.name || "GOURMET RESTAURANT";
+            document.getElementById('receipt-restaurant-address').textContent = restaurantData.address || "123 Fine Dining Street";
+            document.getElementById('receipt-restaurant-contact').textContent = restaurantData.contact || "Tel: (123) 456-7890";
+        }
+                
+        // Load menu items from Firestore
+        function loadMenuItems(userId) {
+            // Clean up any existing listener
+            if (menuItemsListener) {
+                menuItemsListener();
+            }
+            
+            menuItemsListener = db.collection("restaurants").doc(userId).collection("menuItems")
+                .orderBy("name")
+                .onSnapshot((querySnapshot) => {
+                    const foodItems = [];
+                    querySnapshot.forEach((doc) => {
+                        const item = doc.data();
+                        item.id = doc.id;
+                        foodItems.push(item);
+                    });
+                                        
+                    // Render items in both POS and management views
+                    renderFoodItems('all', foodItems);
+                    renderManagementItems('', 'all', 'all', foodItems);
+                }, (error) => {
+                    console.error("Error loading menu items:", error);
+                    showAlert("Error loading menu items", "error");
+                });
+        }
+
+        // Time display
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('current-time').textContent = now.toLocaleString('en-US', {
+                weekday: 'short', 
+                month: 'short', 
+                day: 'numeric', 
+                hour: '2-digit', 
+                minute: '2-digit'
+            });
+
+            if (document.getElementById('receipt-date')) {
+                document.getElementById('receipt-date').textContent = 'Date: ' + now.toLocaleDateString();
+                document.getElementById('receipt-time').textContent = 'Time: ' + now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            }
+        }
+
+        // Tab switching
+        function openTab(tabName) {
+            // Hide all tab contents
+            const tabContents = document.getElementsByClassName('tab-content');
+            for (let i = 0; i < tabContents.length; i++) {
+                tabContents[i].classList.add('hidden');
+            }
+
+            // Show the selected tab content
+            document.getElementById(tabName).classList.remove('hidden');
+
+            // Update tab buttons styling
+            const tabButtons = document.getElementsByClassName('tab-button');
+            for (let i = 0; i < tabButtons.length; i++) {
+                tabButtons[i].classList.remove('bg-gradient-to-r', 'from-gray-800', 'to-gray-700', 'text-white', 'border-gray-600');
+                tabButtons[i].classList.add('text-gray-400');
+            }
+
+            document.getElementById(`${tabName}-tab`).classList.add('bg-gradient-to-r', 'from-gray-800', 'to-gray-700', 'text-white', 'border-gray-600');
+            document.getElementById(`${tabName}-tab`).classList.remove('text-gray-400');
+        }
+
+        // Setup category filter buttons
+        function setupCategoryButtons() {
+            const buttons = document.querySelectorAll('[data-category]');
+            buttons.forEach(button => {
+                button.addEventListener('click', function() {
+                    buttons.forEach(btn => {
+                        btn.classList.remove('bg-gray-800', 'text-yellow-400', 'border-yellow-400', 'glow');
+                        btn.classList.add('bg-gray-800', 'bg-opacity-60', 'text-gray-300', 'border-gray-600');
+                    });
+
+                    this.classList.add('bg-gray-800', 'text-yellow-400', 'border-yellow-400', 'glow');
+                    this.classList.remove('bg-opacity-60', 'text-gray-300', 'border-gray-600');
+
+                    const category = this.getAttribute('data-category');
+                    renderFoodItems(category);
+                });
+            });
+        }
+
+        // Render food items for POS
+        function renderFoodItems(category = 'all', items = null) {
+            const container = document.getElementById('food-items-container');
+            container.innerHTML = '';
+
+            if (!items) {
+                // If no items provided, we need to get them from Firestore
+                if (!currentUserId) return;
+
+                db.collection("restaurants").doc(currentUserId).collection("menuItems")
+                    .where("status", "==", "active")
+                    .get()
+                    .then((querySnapshot) => {
+                        const foodItems = [];
+                        querySnapshot.forEach((doc) => {
+                            const item = doc.data();
+                            item.id = doc.id;
+                            foodItems.push(item);
+                        });
+                        renderFoodItemsWithData(category, foodItems, container);
+                    });
+                return;
+            }
+
+            // If items are provided, use them directly
+            renderFoodItemsWithData(category, items, container);
+        }
+
+        function renderFoodItemsWithData(category, items, container) {
+            const filteredItems = category === 'all' 
+                ? items.filter(item => item.status === 'active')
+                : items.filter(item => item.category === category && item.status === 'active');
+
+            if (filteredItems.length === 0) {
+                container.innerHTML = '<p class="col-span-4 text-center text-gray-400 py-4">No items found in this category</p>';
+                return;
+            }
+
+            filteredItems.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'food-card bg-gray-800 bg-opacity-50 rounded-lg overflow-hidden cursor-pointer transition-all duration-300 transform hover:scale-105 border border-gray-700 hover:border-yellow-400 shadow-lg hover:shadow-yellow-400/20';
+                card.innerHTML = `
+                    <div class="h-32 bg-cover bg-center relative group">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-70"></div>
+                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onclick="addToOrder('${item.id}', '${item.name}', ${item.price})" class="bg-yellow-500 text-black px-4 py-1 rounded-full text-sm font-bold transform group-hover:scale-110 transition-all">
+                                Quick Add
+                            </button>
+                        </div>
+                        <div class="absolute bottom-0 left-0 p-2">
+                            <span class="px-2 py-1 text-xs rounded-full font-bold ${
+                                item.category === 'appetizer' ? 'bg-purple-600 text-white' :
+                                item.category === 'main' ? 'bg-blue-600 text-white' :
+                                item.category === 'dessert' ? 'bg-pink-600 text-white' :
+                                'bg-green-600 text-white'
+                            }">
+                                ${item.category.charAt(0).toUpperCase() + item.category.slice(1)}
+                            </span>
+                        </div>
+                        <div class="h-full w-full bg-cover bg-center" style="background-image: url('${item.image || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4'}')"></div>
+                    </div>
+                    <div class="p-3 flex flex-col">
+                        <div class="flex justify-between items-start">
+                            <h4 class="text-white font-bold truncate flex-1">${item.name}</h4>
+                            <span class="text-yellow-400 font-bold">$${item.price.toFixed(2)}</span>
+                        </div>
+                        <p class="text-gray-400 text-xs mt-1 truncate">${item.description || ''}</p>
+                        <button onclick="addToOrder('${item.id}', '${item.name}', ${item.price})" class="mt-3 w-full bg-gray-700 hover:bg-gray-600 text-white py-2 px-3 rounded text-sm transition-all border border-gray-600 hover:border-gray-500">
+                            <i class="fas fa-plus mr-1"></i> Add to Order
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Render food items for management
+        function renderManagementItems(search = '', category = 'all', status = 'all', items = null) {
+            const container = document.getElementById('food-management-items');
+            container.innerHTML = '';
+
+            if (!items) {
+                // If no items provided, we need to get them from Firestore
+                if (!currentUserId) return;
+
+                db.collection("restaurants").doc(currentUserId).collection("menuItems")
+                    .orderBy("name")
+                    .get()
+                    .then((querySnapshot) => {
+                        const foodItems = [];
+                        querySnapshot.forEach((doc) => {
+                            const item = doc.data();
+                            item.id = doc.id;
+                            foodItems.push(item);
+                        });
+                        renderManagementItemsWithData(search, category, status, foodItems, container);
+                    });
+                return;
+            }
+
+            // If items are provided, use them directly
+            renderManagementItemsWithData(search, category, status, items, container);
+        }
+
+        function renderManagementItemsWithData(search, category, status, items, container) {
+            const filteredItems = items.filter(item => {
+                const matchesSearch = item.name.toLowerCase().includes(search.toLowerCase());
+                const matchesCategory = category === 'all' || item.category === category;
+                const matchesStatus = status === 'all' || item.status === status;
+                return matchesSearch && matchesCategory && matchesStatus;
+            });
+
+            if (filteredItems.length === 0) {
+                container.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-400">No items found matching your criteria</td></tr>';
+                return;
+            }
+
+            filteredItems.forEach(item => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-700 hover:bg-opacity-30 transition-colors';
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="w-12 h-12 rounded-md bg-cover bg-center border border-gray-600" style="background-image: url('${item.image || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4'}')"></div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-white font-medium flex items-center">
+                            ${item.name}
+                            ${item.status === 'inactive' ? '<span class="ml-2 text-xs bg-gray-600 text-gray-300 px-2 py-0.5 rounded">Hidden</span>' : ''}
+                        </div>
+                        <div class="text-gray-400 text-xs truncate w-40">${item.description || ''}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 text-xs rounded-full capitalize font-medium ${
+                            item.category === 'appetizer' ? 'bg-purple-800 text-purple-100' :
+                            item.category === 'main' ? 'bg-blue-800 text-blue-100' :
+                            item.category === 'dessert' ? 'bg-pink-800 text-pink-100' :
+                            'bg-green-800 text-green-100'
+                        }">
+                            ${item.category}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-yellow-400 font-bold">
+                        $${item.price.toFixed(2)}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 text-xs rounded-full font-semibold ${
+                            item.status === 'active' ? 'bg-green-800 text-green-100' : 'bg-gray-700 text-gray-300'
+                        }">
+                            ${item.status === 'active' ? 'Active' : 'Inactive'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button onclick="editFoodItem('${item.id}')" class="text-yellow-400 hover:text-yellow-300 mr-3 p-1 bg-gray-700 rounded-full w-8 h-8 flex items-center justify-center">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="toggleFoodStatus('${item.id}', '${item.status}')" class="${
+                            item.status === 'active' ? 'text-red-400 hover:text-red-300' : 'text-green-400 hover:text-green-300'
+                        } p-1 bg-gray-700 rounded-full w-8 h-8 flex items-center justify-center">
+                            <i class="fas ${item.status === 'active' ? 'fa-eye-slash' : 'fa-eye'}"></i>
+                        </button>
+                    </td>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        // Order functions
+        function addToOrder(foodId, name, price) {
+            const existing = currentOrder.find(order => order.id === foodId);
+            if (existing) {
+                existing.quantity++;
+            } else {
+                currentOrder.push({
+                    id: foodId,
+                    name: name,
+                    price: price,
+                    quantity: 1
+                });
+            }
+
+            updateOrderDisplay();
+
+            // Add a quick notification
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-4 right-4 bg-gray-800 text-yellow-400 px-4 py-2 rounded-lg shadow-lg border border-yellow-400 transform translate-x-full animate-slide-in';
+            notification.innerHTML = `<i class="fas fa-check-circle mr-2"></i> ${name} added to order`;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.classList.remove('animate-slide-in');
+                notification.classList.add('animate-slide-out');
+                setTimeout(() => notification.remove(), 300);
+            }, 2000);
+        }
+
+        function removeFromOrder(foodId) {
+            const index = currentOrder.findIndex(order => order.id === foodId);
+            if (index !== -1) {
+                if (currentOrder[index].quantity > 1) {
+                    currentOrder[index].quantity--;
+                } else {
+                    currentOrder.splice(index, 1);
+                }
+                updateOrderDisplay();
+            }
+        }
+
+        function updateOrderDisplay() {
+            const container = document.getElementById('order-items');
+            if (currentOrder.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-400 py-4">No items added yet</p>';
+                document.getElementById('subtotal').textContent = '$0.00';
+                document.getElementById('tax').textContent = '$0.00';
+                document.getElementById('total').textContent = '$0.00';
+                document.getElementById('payment-total').textContent = '0.00';
+                return;
+            }
+
+            let subtotal = 0;
+            container.innerHTML = '';
+
+            currentOrder.forEach(item => {
+                const total = item.price * item.quantity;
+                subtotal += total;
+
+                const itemElement = document.createElement('div');
+                itemElement.className = 'receipt-item flex justify-between py-2 px-2 rounded-lg my-1 cursor-pointer transition-colors hover:bg-gray-700 hover:bg-opacity-30';
+                itemElement.innerHTML = `
+                    <div class="text-white truncate flex items-center">
+                        <span>${item.name}</span>
+                    </div>
+                    <div class="flex space-x-8">
+                        <div class="text-gray-300 flex items-center space-x-1 w-12">
+                            <button onclick="event.stopPropagation(); removeFromOrder('${item.id}')" class="text-xs bg-gray-700 rounded-full h-5 w-5 flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors">-</button>
+                            <span>${item.quantity}</span>
+                            <button onclick="event.stopPropagation(); addToOrder('${item.id}', '${item.name}', ${item.price})" class="text-xs bg-gray-700 rounded-full h-5 w-5 flex items-center justify-center hover:bg-green-500 hover:text-white transition-colors">+</button>
+                        </div>
+                        <div class="text-gray-300 w-12 flex items-center">$${item.price.toFixed(2)}</div>
+                        <div class="text-white w-12 flex items-center font-medium">$${total.toFixed(2)}</div>
+                    </div>
+                `;
+                container.appendChild(itemElement);
+            });
+
+            const tax = subtotal * APP_CONFIG.taxRate;
+            const total = subtotal + tax;
+
+            document.getElementById('subtotal').textContent = '$' + subtotal.toFixed(2);
+            document.getElementById('tax').textContent = '$' + tax.toFixed(2);
+            document.getElementById('total').textContent = '$' + total.toFixed(2);
+            document.getElementById('payment-total').textContent = total.toFixed(2);
+        }
+
+        function voidOrder() {
+            if (currentOrder.length === 0) {
+                showAlert('Order is already empty', 'warning');
+                return;
+            }
+
+            if (confirm('Are you sure you want to void the current order?')) {
+                currentOrder = [];
+                updateOrderDisplay();
+                showAlert('Order voided successfully', 'success');
+            }
+        }
+
+        function printReceipt() {
+            if (currentOrder.length === 0) {
+                showAlert('No items in the order to print', 'warning');
+                return;
+            }
+
+            generateReceiptContent();
+            document.getElementById('receipt-modal').classList.remove('hidden');
+        }
+
+        function checkout() {
+            if (currentOrder.length === 0) {
+                showAlert('No items in the order', 'warning');
+                return;
+            }
+
+            const total = parseFloat(document.getElementById('total').textContent.replace('$', ''));
+            document.getElementById('payment-amount').value = '$' + total.toFixed(2);
+            document.getElementById('payment-modal').classList.remove('hidden');
+
+            // Reset cash payment fields
+            document.getElementById('cash-received').value = '';
+            document.getElementById('cash-change').textContent = '$0.00';
+            selectedPaymentMethod = 'cash';
+
+            // Update payment method buttons
+            document.querySelectorAll('.payment-method-btn').forEach(btn => {
+                btn.classList.remove('bg-gray-700', 'border-yellow-400');
+                btn.classList.add('bg-gray-800', 'border-gray-700');
+            });
+
+            document.querySelector('.payment-method-btn:nth-child(1)').classList.add('bg-gray-700', 'border-yellow-400');
+            document.querySelector('.payment-method-btn:nth-child(1)').classList.remove('bg-gray-800', 'border-gray-700');
+        }
+
+        function selectPaymentMethod(method) {
+            selectedPaymentMethod = method;
+
+            // Update button styles
+            document.querySelectorAll('.payment-method-btn').forEach(btn => {
+                btn.classList.remove('bg-gray-700', 'border-yellow-400');
+                btn.classList.add('bg-gray-800', 'border-gray-700');
+            });
+
+            // Highlight selected button
+            event.target.classList.add('bg-gray-700', 'border-yellow-400');
+            event.target.classList.remove('bg-gray-800', 'border-gray-700');
+
+            // Show/hide cash section
+            document.getElementById('cash-payment-section').style.display = 
+                method === 'cash' ? 'block' : 'none';
+        }
+
+        function calculateChange() {
+            const total = parseFloat(document.getElementById('total').textContent.replace('$', ''));
+            const received = parseFloat(document.getElementById('cash-received').value) || 0;
+            const change = received - total;
+
+            document.getElementById('cash-change').textContent = '$' + change.toFixed(2);
+        }
+
+        function showAlert(message, type) {
+            const alertBox = document.createElement('div');
+            alertBox.className = `fixed top-4 right-4 p-4 rounded-lg border ${
+                type === 'success' ? 'bg-green-900 border-green-700 text-green-200' :
+                type === 'error' ? 'bg-red-900 border-red-700 text-red-200' :
+                'bg-yellow-900 border-yellow-700 text-yellow-200'
+            } max-w-sm z-50 transform translate-x-full animate-slide-in`;
+            alertBox.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas ${
+                        type === 'success' ? 'fa-check-circle' : 
+                        type === 'error' ? 'fa-times-circle' : 'fa-exclamation-triangle'
+                    } mr-3"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            document.body.appendChild(alertBox);
+
+            setTimeout(() => {
+                alertBox.classList.remove('animate-slide-in');
+                alertBox.classList.add('animate-slide-out');
+                setTimeout(() => alertBox.remove(), 300);
+            }, 3000);
+        }
+
+        // Food management functions
+        function openAddFoodModal() {
+            // Reset form
+            document.getElementById('add-food-name').value = '';
+            document.getElementById('add-food-price').value = '';
+            document.getElementById('add-food-description').value = '';
+            document.getElementById('add-food-image').value = '';
+            document.getElementById('add-food-category').value = 'appetizer';
+            document.querySelector('input[name="status"][value="active"]').checked = true;
+            document.getElementById('image-preview').style.backgroundImage = '';
+            document.getElementById('image-preview').innerHTML = '<i class="fas fa-image text-gray-600 text-3xl"></i>';
+            currentEditingItemId = null;
+
+            document.getElementById('add-food-modal').classList.remove('hidden');
+        }
+
+        function closeAddFoodModal() {
+            document.getElementById('add-food-modal').classList.add('hidden');
+        }
+
+        function closePaymentModal() {
+            document.getElementById('payment-modal').classList.add('hidden');
+        }
+
+        function closeReceiptModal() {
+            document.getElementById('receipt-modal').classList.add('hidden');
+        }
+
+        function saveNewFoodItem() {
+            const userId = currentUserId;
+            if (!userId) {
+                showAlert('You need to be logged in to perform this action', 'error');
+                return;
+            }
+
+            const name = document.getElementById('add-food-name').value.trim();
+            const category = document.getElementById('add-food-category').value;
+            const price = parseFloat(document.getElementById('add-food-price').value);
+            const status = document.querySelector('input[name="status"]:checked').value;
+            const description = document.getElementById('add-food-description').value.trim();
+            const image = document.getElementById('add-food-image').value.trim() || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4';
+
+            if (!name || isNaN(price) || price <= 0) {
+                showAlert('Please fill in all required fields correctly', 'error');
+                return;
+            }
+
+            const newItem = {
+                name,
+                category,
+                price,
+                status,
+                description,
+                image,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            // Add created timestamp only for new items
+            if (!currentEditingItemId) {
+                newItem.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+            }
+
+            const restaurantRef = db.collection("restaurants").doc(userId);
+                        
+            if (currentEditingItemId) {
+                // Update existing item
+                restaurantRef.collection("menuItems").doc(currentEditingItemId).update(newItem)
+                    .then(() => {
+                        showAlert(`"${name}" updated successfully`, 'success');
+                        closeAddFoodModal();
+                    })
+                    .catch((error) => {
+                        console.error("Error updating item: ", error);
+                        showAlert('Error updating menu item', 'error');
+                    });
+            } else {
+                // Add new item
+                restaurantRef.collection("menuItems").add(newItem)
+                    .then(() => {
+                        showAlert(`"${name}" added to menu successfully`, 'success');
+                        closeAddFoodModal();
+                    })
+                    .catch((error) => {
+                        console.error("Error adding item: ", error);
+                        showAlert('Error adding menu item', 'error');
+                    });
+            }
+        }
+
+        function editFoodItem(id) {
+            const userId = currentUserId;
+            if (!userId) {
+                showAlert('You need to be logged in to perform this action', 'error');
+                return;
+            }
+
+            db.collection("restaurants").doc(userId).collection("menuItems").doc(id).get()
+                .then((doc) => {
+                    if (doc.exists) {
+                        const item = doc.data();
+                        document.getElementById('add-food-name').value = item.name;
+                        document.getElementById('add-food-category').value = item.category;
+                        document.getElementById('add-food-price').value = item.price;
+                        document.querySelector(`input[name="status"][value="${item.status}"]`).checked = true;
+                        document.getElementById('add-food-description').value = item.description || '';
+                        document.getElementById('add-food-image').value = item.image || '';
+                                                
+                        // Update image preview
+                        const preview = document.getElementById('image-preview');
+                        if (item.image) {
+                            preview.style.backgroundImage = `url('${item.image}')`;
+                            preview.style.backgroundSize = 'cover';
+                            preview.style.backgroundPosition = 'center';
+                            preview.innerHTML = '';
+                        } else {
+                            preview.style.backgroundImage = '';
+                            preview.innerHTML = '<i class="fas fa-image text-gray-600 text-3xl"></i>';
+                        }
+                                                
+                        currentEditingItemId = id;
+                        document.getElementById('add-food-modal').classList.remove('hidden');
+                    } else {
+                        showAlert('Menu item not found', 'error');
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error getting item: ", error);
+                    showAlert('Error loading menu item', 'error');
+                });
+        }
+
+        function toggleFoodStatus(id, currentStatus) {
+            const userId = currentUserId;
+            if (!userId) {
+                showAlert('You need to be logged in to perform this action', 'error');
+                return;
+            }
+
+            const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+                        
+            db.collection("restaurants").doc(userId).collection("menuItems").doc(id).update({
+                status: newStatus,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            })
+            .then(() => {
+                showAlert(`Item has been ${newStatus === 'active' ? 'activated' : 'deactivated'}`, 'success');
+            })
+            .catch((error) => {
+                console.error("Error updating status: ", error);
+                showAlert('Error updating item status', 'error');
+            });
+        }
+
+        // Real-time filtering
+        document.getElementById('food-search').addEventListener('input', function() {
+            const search = this.value;
+            const category = document.getElementById('food-category-filter').value;
+            const status = document.getElementById('food-status-filter').value;
+            renderManagementItems(search, category, status);
+        });
+
+        document.getElementById('food-category-filter').addEventListener('change', function() {
+            const search = document.getElementById('food-search').value;
+            const category = this.value;
+            const status = document.getElementById('food-status-filter').value;
+            renderManagementItems(search, category, status);
+        });
+
+        document.getElementById('food-status-filter').addEventListener('change', function() {
+            const search = document.getElementById('food-search').value;
+            const category = document.getElementById('food-category-filter').value;
+            const status = this.value;
+            renderManagementItems(search, category, status);
+        });
+
+        // Payment processing
+        function completePayment() {
+            if (selectedPaymentMethod === 'cash') {
+                const total = parseFloat(document.getElementById('total').textContent.replace('$', ''));
+                const received = parseFloat(document.getElementById('cash-received').value) || 0;
+
+                if (received < total) {
+                    showAlert('Cash received must be at least equal to the total amount', 'error');
+                    return;
+                }
+            }
+
+            generateReceiptContent();
+            document.getElementById('payment-modal').classList.add('hidden');
+            document.getElementById('receipt-modal').classList.remove('hidden');
+
+            // Save order to Firestore
+            saveOrderToFirestore();
+
+            // Reset order
+            currentOrder = [];
+            updateOrderDisplay();
+
+            // Increment transaction number
+            transactionCounter++;
+        }
+
+       function saveOrderToFirestore() {
+            const userId = auth.currentUser?.uid;
+            if (!userId) return;
+
+            const total = parseFloat(document.getElementById('total').textContent.replace('$', ''));
+            const subtotal = total / 1.1; // Assuming 10% tax
+            const tax = total - subtotal;
+
+            const orderData = {
+                items: currentOrder,
+                subtotal: subtotal,
+                tax: tax,
+                total: total,
+                paymentMethod: selectedPaymentMethod,
+                status: 'completed',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            if (selectedPaymentMethod === 'cash') {
+                const received = parseFloat(document.getElementById('cash-received').value) || total;
+                orderData.cashReceived = received;
+                orderData.change = received - total;
+            }
+
+            db.collection("restaurants").doc(userId).collection("orders").add(orderData)
+                .catch((error) => {
+                    console.error("Error saving order: ", error);
+                });
+        }
+
+          function generateReceiptContent() {
+            let subtotal = 0;
+            const itemsContainer = document.getElementById('receipt-items');
+            itemsContainer.innerHTML = '';
+            
+            currentOrder.forEach(item => {
+                const total = item.price * item.quantity;
+                subtotal += total;
+                
+                const itemElement = document.createElement('div');
+                itemElement.className = 'flex justify-between py-1 text-xs';
+                itemElement.innerHTML = `
+                    <div class="flex-1 truncate">
+                        <span class="font-bold">${item.quantity}x</span>
+                        <span> ${item.name}</span>
+                    </div>
+                    <div class="font-medium">$${total.toFixed(2)}</div>
+                `;
+                itemsContainer.appendChild(itemElement);
+            });
+            
+            const tax = subtotal * 0.1;
+            const total = subtotal + tax;
+            
+            document.getElementById('receipt-subtotal').textContent = '$' + subtotal.toFixed(2);
+            document.getElementById('receipt-tax').textContent = '$' + tax.toFixed(2);
+            document.getElementById('receipt-total').textContent = '$' + total.toFixed(2);
+            
+            // Payment details
+            document.getElementById('receipt-payment-method').textContent = 
+                'Payment Method: ' + (selectedPaymentMethod === 'cash' ? 'Cash' :
+                                      selectedPaymentMethod === 'card' ? 'Credit Card' : 'Online Payment');
+            
+            document.getElementById('receipt-number').textContent = transactionCounter.toString().padStart(5, '0');
+            
+            if (selectedPaymentMethod === 'cash') {
+                const received = parseFloat(document.getElementById('cash-received').value) || total;
+                document.getElementById('receipt-cash-received').textContent = 'Cash Received: $' + received.toFixed(2);
+                document.getElementById('receipt-change').textContent = 'Change: $' + (received - total).toFixed(2);
+                document.getElementById('receipt-cash-received').style.display = 'block';
+                document.getElementById('receipt-change').style.display = 'block';
+            } else {
+                document.getElementById('receipt-cash-received').style.display = 'none';
+                document.getElementById('receipt-change').style.display = 'none';
+            }
+        }
+
+        function printActualReceipt() {
+            // In a real app, this would connect to a printer
+            showAlert('Receipt sent to printer', 'success');
+            document.getElementById('receipt-modal').classList.add('hidden');
+        }
+
+        // Event listeners for cash payment
+        document.getElementById('cash-received').addEventListener('input', calculateChange);
+
+        // Add custom animation styles
+        const style = document.createElement('style');
+        style.innerHTML = `
+            @keyframes slide-in {
+                from { transform: translateX(100%); }
+                to { transform: translateX(0); }
+            }
+            
+            @keyframes slide-out {
+                from { transform: translateX(0); }
+                to { transform: translateX(100%); }
+            }
+            
+            .animate-slide-in {
+                animation: slide-in 0.3s forwards;
+            }
+            
+            .animate-slide-out {
+                animation: slide-out 0.3s forwards;
+            }
+        `;
+        document.head.appendChild(style);
+
+        
+    </script>
+</body>
+</html>
