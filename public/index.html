@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exam Results Portal</title>
+    <title>Exam Portal</title>
     <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
@@ -22,8 +22,8 @@
             --accent-blue: #3b82f6;
             --accent-cyan: #06b6d4;
             --dark-bg: #0f0f23;
-            --glass-bg: rgba(20, 20, 40, 0.6);
-            --glass-border: rgba(124, 58, 237, 0.2);
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.18);
         }
         
         * {
@@ -38,21 +38,21 @@
         
         .glass-effect {
             background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
             border: 1px solid var(--glass-border);
-            box-shadow: 0 8px 32px rgba(124, 58, 237, 0.1);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
         }
         
         .glass-input {
-            background: rgba(20, 20, 40, 0.4);
+            background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(124, 58, 237, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             transition: all 0.3s ease;
         }
         
         .glass-input:focus {
-            border-color: var(--primary-purple);
+            border-color: rgba(124, 58, 237, 0.5);
             box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
             transform: translateY(-2px);
         }
@@ -76,17 +76,21 @@
             box-shadow: 0 10px 30px rgba(124, 58, 237, 0.4);
         }
         
-        .btn-primary:active {
-            transform: translateY(0);
+        .pinterest-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            grid-auto-rows: minmax(100px, auto);
         }
         
-        .table-row {
+        .pinterest-card {
+            break-inside: avoid;
             transition: all 0.3s ease;
         }
         
-        .table-row:hover {
-            background: rgba(124, 58, 237, 0.1);
-            transform: scale(1.01);
+        .pinterest-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(124, 58, 237, 0.3);
         }
         
         .toast {
@@ -125,26 +129,16 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
-        .pulse {
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(124, 58, 237, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0); }
-        }
-        
         .custom-scrollbar::-webkit-scrollbar {
             width: 6px;
         }
         
         .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(20, 20, 40, 0.3);
+            background: rgba(255, 255, 255, 0.1);
         }
         
         .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: var(--primary-purple);
+            background: linear-gradient(45deg, var(--primary-purple), var(--accent-pink));
             border-radius: 3px;
         }
         
@@ -163,29 +157,62 @@
                 radial-gradient(circle at 0% 100%, var(--accent-cyan) 0%, transparent 50%);
         }
         
-        /* Student Portal Styles */
+        .modal-backdrop {
+            backdrop-filter: blur(15px);
+            background: rgba(0, 0, 0, 0.7);
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        .glass-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 25px 50px rgba(124, 58, 237, 0.25);
+        }
+        
+        .glow-effect {
+            box-shadow: 0 0 20px rgba(124, 58, 237, 0.5);
+        }
+        
+        .text-glow {
+            text-shadow: 0 0 10px rgba(124, 58, 237, 0.7);
+        }
+        
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
         .student-card {
-            background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(236, 72, 153, 0.1));
-            border: 1px solid rgba(124, 58, 237, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1rem;
             transition: all 0.3s ease;
         }
         
         .student-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(124, 58, 237, 0.3);
+            transform: translateY(-2px);
+            border-color: rgba(124, 58, 237, 0.5);
         }
         
-        /* Modal Styles */
-        .modal-backdrop {
-            backdrop-filter: blur(10px);
-            background: rgba(0, 0, 0, 0.8);
+        /* Performance Chart Container */
+        .performance-container {
+            grid-column: span 2;
+            min-height: 500px;
         }
         
-        /* Input size variations */
-        .input-id { width: 120px; }
-        .input-name { width: 200px; }
-        .input-class { width: 100px; }
-        .input-marks { width: 100px; }
+        @media (max-width: 768px) {
+            .performance-container {
+                grid-column: span 1;
+            }
+        }
     </style>
 </head>
 <body>
@@ -203,74 +230,220 @@
     </div>
     
     <!-- Navigation -->
-    <nav class="fixed top-0 w-full z-40 glass-effect border-b border-purple-500/20">
+    <nav class="fixed top-0 w-full z-40 glass-effect border-b border-white/10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center">
-                    <i data-feather="award" class="text-purple-400 mr-2"></i>
-                    <span class="text-white font-bold text-xl">Exam Results Portal</span>
+                    <i data-feather="award" class="text-purple-400 mr-2 text-glow"></i>
+                    <span class="text-white font-bold text-xl text-glow">Exam Portal</span>
                 </div>
                 <div class="flex space-x-4">
-                    <button id="teacherMode" class="px-4 py-2 rounded-lg text-white hover:bg-purple-600 transition-colors">
-                        <i data-feather="user-check" class="inline mr-1"></i>Teacher
+                    <button id="teacherMode" class="px-6 py-2 rounded-xl text-white hover:bg-white/10 transition-all duration-300">
+                        <i data-feather="user-check" class="inline mr-2"></i>Teacher
                     </button>
-                    <button id="studentMode" class="px-4 py-2 rounded-lg text-white hover:bg-purple-600 transition-colors">
-                        <i data-feather="user" class="inline mr-1"></i>Student
+                    <button id="studentMode" class="px-6 py-2 rounded-xl text-white hover:bg-white/10 transition-all duration-300">
+                        <i data-feather="user" class="inline mr-2"></i>Student
                     </button>
                 </div>
             </div>
         </div>
     </nav>
     
-    <!-- Teacher Portal -->
-    <div id="teacherPortal" class="min-h-screen pt-20 pb-12">
+    <!-- Main Content -->
+    <div class="min-h-screen pt-20 pb-12">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <!-- Create Exam Card -->
-            <div class="glass-effect rounded-3xl p-8 mb-8 fade-in" data-aos="fade-up">
-                <h2 class="text-3xl font-bold text-white mb-6 flex items-center">
-                    <i data-feather="plus-circle" class="mr-3 text-purple-400"></i>
-                    Create New Exam
-                </h2>
+            
+            <!-- Hero Section -->
+            <div class="text-center mb-12" data-aos="fade-up">
+                <h1 class="text-6xl font-black mb-4">
+                    <span class="gradient-text text-glow">Exam Portal</span>
+                </h1>
+                <p class="text-gray-300 text-xl font-light">Create, Manage & Track Exam Results</p>
+            </div>
+            
+            <!-- Pinterest Grid Layout -->
+            <div class="pinterest-grid">
                 
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-                    <div>
-                        <label class="block text-gray-300 mb-2 font-medium">Exam Type</label>
-                        <select id="examType" class="glass-input w-full px-4 py-3 rounded-xl text-white focus:outline-none">
-                            <option value="quiz">Quiz</option>
-                            <option value="midterm">Midterm</option>
-                            <option value="final">Final</option>
-                            <option value="assignment">Assignment</option>
-                        </select>
+                <!-- Create New Exam Card -->
+                <div class="glass-card p-8" data-aos="fade-up" data-aos-delay="100">
+                    <div class="flex items-center mb-6">
+                        <i data-feather="plus-circle" class="text-purple-400 mr-3 w-8 h-8 text-glow"></i>
+                        <h2 class="text-3xl font-bold text-white">Create New Exam</h2>
                     </div>
-                    <div>
-                        <label class="block text-gray-300 mb-2 font-medium">Date</label>
-                        <input type="date" id="examDate" class="glass-input w-full px-4 py-3 rounded-xl text-white focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-gray-300 mb-2 font-medium">Year</label>
-                        <input type="number" id="examYear" placeholder="2024" value="2024" 
-                               class="glass-input w-full px-4 py-3 rounded-xl text-white placeholder-gray-400 focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-gray-300 mb-2 font-medium">Total Marks</label>
-                        <input type="number" id="totalMarks" placeholder="100" value="100"
-                               class="glass-input w-full px-4 py-3 rounded-xl text-white placeholder-gray-400 focus:outline-none">
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-gray-300 mb-3 font-medium text-sm">Exam Type</label>
+                            <select id="examType" class="glass-input w-full px-4 py-3 rounded-xl bg-white/20 text-gray-900 focus:outline-none">
+                                <option value="quiz">Quiz</option>
+                                <option value="midterm">Midterm</option>
+                                <option value="final">Final</option>
+                                <option value="assignment">Assignment</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-gray-300 mb-3 font-medium text-sm">Class</label>
+                            <select id="examClass" class="glass-input w-full px-4 py-3 rounded-xl bg-white/20 text-gray-900 focus:outline-none">
+                                <option value="">Select Class</option>
+                            </select>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-gray-300 mb-3 font-medium text-sm">Date</label>
+                                <input type="date" id="examDate" class="glass-input w-full px-4 py-3 rounded-xl text-white focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-gray-300 mb-3 font-medium text-sm">Year</label>
+                                <input type="number" id="examYear" placeholder="2024" value="2024" 
+                                       class="glass-input w-full px-4 py-3 rounded-xl text-white placeholder-gray-400 focus:outline-none">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-gray-300 mb-3 font-medium text-sm">Total Marks</label>
+                            <input type="number" id="totalMarks" placeholder="100" value="100"
+                                   class="glass-input w-full px-4 py-3 rounded-xl text-white placeholder-gray-400 focus:outline-none">
+                        </div>
+                        
+                        <button id="createExamBtn" class="btn-primary w-full py-4 rounded-xl text-white font-semibold text-lg glow-effect">
+                            Create Exam
+                        </button>
                     </div>
                 </div>
                 
-                <button id="createExamBtn" class="btn-primary px-8 py-4 rounded-xl text-white font-semibold text-lg">
-                    Create Exam
-                </button>
+                <!-- Connected Container: Saved Exams -->
+                <div class="glass-card p-8" data-aos="fade-up" data-aos-delay="200">
+                    <div class="flex items-center mb-6">
+                        <i data-feather="database" class="text-purple-400 mr-3 w-8 h-8 text-glow"></i>
+                        <h2 class="text-3xl font-bold text-white">Saved Exams</h2>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="flex gap-3">
+                            <select id="filterClass" class="glass-input px-4 py-2 rounded-xl bg-white/20 text-gray-900 focus:outline-none flex-1">
+                                <option value="">All Classes</option>
+                            </select>
+                            <select id="filterYear" class="glass-input px-4 py-2 rounded-xl bg-white/20 text-gray-900 focus:outline-none flex-1">
+                                <option value="">All Years</option>
+                            </select>
+                        </div>
+                        
+                        <div id="savedExamsList" class="space-y-3 max-h-96 overflow-y-auto custom-scrollbar">
+                            <!-- Dynamic exam cards will be inserted here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Connected Container: Student Search (Top Half) -->
+                <div class="glass-card p-8" data-aos="fade-up" data-aos-delay="300">
+                    <div class="flex items-center mb-6">
+                        <i data-feather="search" class="text-purple-400 mr-3 w-8 h-8 text-glow"></i>
+                        <h2 class="text-3xl font-bold text-white">Student Results</h2>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-gray-300 mb-3 font-medium text-sm">Student ID</label>
+                            <input type="text" id="studentSearchId" placeholder="Enter your student ID" 
+                                   class="glass-input w-full px-4 py-3 rounded-xl text-white placeholder-gray-400 focus:outline-none">
+                        </div>
+                        <button id="searchResultsBtn" class="btn-primary w-full py-3 rounded-xl text-white font-semibold glow-effect">
+                            <i data-feather="search" class="inline mr-2"></i>Search Results
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Connected Container: Create Class (Bottom Half) -->
+                <div class="glass-card p-8" data-aos="fade-up" data-aos-delay="350">
+                    <div class="flex items-center mb-6">
+                        <i data-feather="folder-plus" class="text-purple-400 mr-3 w-8 h-8 text-glow"></i>
+                        <h2 class="text-3xl font-bold text-white">Create Class</h2>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-gray-300 mb-3 font-medium text-sm">Class Name</label>
+                            <input type="text" id="className" placeholder="e.g., Grade 10 A" 
+                                   class="glass-input w-full px-4 py-3 rounded-xl text-white placeholder-gray-400 focus:outline-none">
+                        </div>
+                        <button id="createClassBtn" class="btn-primary w-full py-3 rounded-xl text-white font-semibold glow-effect">
+                            <i data-feather="plus" class="inline mr-2"></i>Create Class
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Quick Stats Card -->
+                <div class="glass-card p-8" data-aos="fade-up" data-aos-delay="400">
+                    <h2 class="text-3xl font-bold text-white mb-6 flex items-center">
+                        <i data-feather="trending-up" class="text-purple-400 mr-3 w-8 h-8 text-glow"></i>
+                        Quick Stats
+                    </h2>
+                    <div class="space-y-4">
+                        <div class="glass-effect rounded-xl p-4">
+                            <div class="text-2xl font-bold text-purple-400" id="totalExams">0</div>
+                            <div class="text-gray-300 text-sm">Total Exams Created</div>
+                        </div>
+                        <div class="glass-effect rounded-xl p-4">
+                            <div class="text-2xl font-bold text-green-400" id="totalStudents">0</div>
+                            <div class="text-gray-300 text-sm">Students Processed</div>
+                        </div>
+                        <div class="glass-effect rounded-xl p-4">
+                            <div class="text-2xl font-bold text-yellow-400" id="avgMarks">0</div>
+                            <div class="text-gray-300 text-sm">Average Marks</div>
+                        </div>
+                    </div>
+                </div>
+                    <!-- Teachers Card -->
+                    <div class="glass-card p-8" data-aos="fade-up" data-aos-delay="410">
+                        <h2 class="text-3xl font-bold text-white mb-6 flex items-center">
+                            <i data-feather="users" class="text-purple-400 mr-3 w-8 h-8 text-glow"></i>
+                            Teachers
+                        </h2>
+                        <div id="teachersList" class="space-y-4 max-h-80 overflow-y-auto custom-scrollbar">
+                            <!-- Teachers will be dynamically loaded here -->
+                        </div>
+                        <div id="noTeachersMsg" class="text-gray-400 text-center hidden">No teachers found.</div>
+                        <div id="createTeacherForm" class="space-y-3 mt-4 hidden">
+                            <input type="text" id="teacherNameInput" placeholder="Teacher Name" class="glass-input w-full px-4 py-3 rounded-xl text-white placeholder-gray-400 focus:outline-none">
+                            <input type="email" id="teacherEmailInput" placeholder="Email (optional)" class="glass-input w-full px-4 py-3 rounded-xl text-white placeholder-gray-400 focus:outline-none">
+                            <button id="submitTeacherBtn" class="btn-primary w-full py-3 rounded-xl text-white font-semibold glow-effect">
+                                <i data-feather="check" class="inline mr-2"></i>Save Teacher
+                            </button>
+                        </div>
+                        <button id="createTeacherBtn" class="btn-primary w-full py-3 rounded-xl text-white font-semibold glow-effect mt-4">
+                            <i data-feather="plus" class="inline mr-2"></i>Create Teacher
+                        </button>
+                    </div>
+                
+                <!-- Performance Chart Container -->
+                <div class="glass-card p-8 performance-container" data-aos="fade-up" data-aos-delay="500">
+                    <h2 class="text-3xl font-bold text-white mb-6 flex items-center">
+                        <i data-feather="bar-chart-2" class="text-purple-400 mr-3 w-8 h-8 text-glow"></i>
+                        Performance Overview
+                    </h2>
+                    <div class="relative h-96">
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                </div>
             </div>
             
-            <!-- Exam Results Table -->
-            <div id="resultsSection" class="hidden">
-                <div class="glass-effect rounded-3xl p-8 fade-in">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-3xl font-bold text-white">
-                            <span id="currentExamName"></span> Results
-                        </h2>
-                        <div class="flex gap-3">
+            <!-- Results Table Popup -->
+            <div id="resultsSection" class="hidden fixed inset-0 z-50">
+                <div class="modal-backdrop absolute inset-0"></div>
+                <div class="relative z-10 flex items-center justify-center min-h-screen p-4">
+                    <div class="glass-effect rounded-3xl p-8 max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-3xl font-bold text-white">
+                                <span id="currentExamName"></span> Results
+                            </h2>
+                            <button onclick="closeResultsTable()" class="text-gray-400 hover:text-white">
+                                <i data-feather="x" class="w-8 h-8"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="mb-6 flex gap-3">
                             <button id="addRowBtn" class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-xl text-white transition-all">
                                 <i data-feather="plus" class="inline mr-2"></i>Add Row
                             </button>
@@ -278,99 +451,42 @@
                                 <i data-feather="save" class="inline mr-2"></i>Save All
                             </button>
                         </div>
-                    </div>
-                    
-                    <div class="overflow-x-auto custom-scrollbar">
-                        <table class="w-full">
-                            <thead>
-                                <tr class="border-b border-purple-500/30">
-                                    <th class="text-left py-4 px-4 text-purple-300 font-semibold">#</th>
-                                    <th class="text-left py-4 px-4 text-purple-300 font-semibold">Student ID</th>
-                                    <th class="text-left py-4 px-4 text-purple-300 font-semibold">Name</th>
-                                    <th class="text-left py-4 px-4 text-purple-300 font-semibold">Class</th>
-                                    <th class="text-left py-4 px-4 text-purple-300 font-semibold">Marks</th>
-                                    <th class="text-left py-4 px-4 text-purple-300 font-semibold">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="resultsTableBody">
-                                <!-- Dynamic rows will be inserted here -->
-                            </tbody>
-                        </table>
+                        
+                        <div class="overflow-x-auto custom-scrollbar">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b border-white/20">
+                                        <th class="text-left py-4 px-4 text-purple-300 font-semibold">#</th>
+                                        <th class="text-left py-4 px-4 text-purple-300 font-semibold">Student ID</th>
+                                        <th class="text-left py-4 px-4 text-purple-300 font-semibold">Name</th>
+                                        <th class="text-left py-4 px-4 text-purple-300 font-semibold">Marks</th>
+                                        <th class="text-left py-4 px-4 text-purple-300 font-semibold">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="resultsTableBody">
+                                    <!-- Dynamic rows will be inserted here -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
             
-            <!-- Saved Exams -->
-            <div class="mt-12 glass-effect rounded-3xl p-8 fade-in" data-aos="fade-up">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-3xl font-bold text-white flex items-center">
-                        <i data-feather="database" class="mr-3 text-purple-400"></i>
-                        Saved Exams
-                    </h2>
-                    <div class="flex gap-3">
-                        <select id="filterClass" class="glass-input px-4 py-2 rounded-xl text-white focus:outline-none">
-                            <option value="">All Classes</option>
-                        </select>
-                        <select id="filterYear" class="glass-input px-4 py-2 rounded-xl text-white focus:outline-none">
-                            <option value="">All Years</option>
-                        </select>
+            <!-- Student Results Modal -->
+            <div id="studentResultsModal" class="fixed inset-0 z-50 hidden">
+                <div class="modal-backdrop absolute inset-0"></div>
+                <div class="relative z-10 flex items-center justify-center min-h-screen p-4">
+                    <div class="glass-effect rounded-3xl p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-3xl font-bold text-white">Your Results</h2>
+                            <button onclick="closeStudentModal()" class="text-gray-400 hover:text-white">
+                                <i data-feather="x" class="w-8 h-8"></i>
+                            </button>
+                        </div>
+                        <div id="studentResultsContent" class="space-y-4">
+                            <!-- Student results will be displayed here -->
+                        </div>
                     </div>
-                </div>
-                <div id="savedExamsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <!-- Dynamic exam cards will be inserted here -->
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Student Portal -->
-    <div id="studentPortal" class="min-h-screen pt-20 pb-12 hidden">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-12" data-aos="fade-up">
-                <h1 class="text-5xl font-black mb-4">
-                    <span class="gradient-text">Student Results Portal</span>
-                </h1>
-                <p class="text-gray-300 text-xl font-light">Check your exam results</p>
-            </div>
-            
-            <div class="glass-effect rounded-3xl p-8 max-w-md mx-auto" data-aos="fade-up">
-                <h2 class="text-2xl font-bold text-white mb-6 text-center">Find Your Results</h2>
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-gray-300 mb-2 font-medium">Student ID</label>
-                        <input type="text" id="studentSearchId" placeholder="Enter your student ID" 
-                               class="glass-input w-full px-4 py-3 rounded-xl text-white placeholder-gray-400 focus:outline-none">
-                    </div>
-                    <button id="searchResultsBtn" class="btn-primary w-full py-3 rounded-xl text-white font-semibold">
-                        <i data-feather="search" class="inline mr-2"></i>Search Results
-                    </button>
-                </div>
-            </div>
-            
-            <div id="studentResults" class="mt-12 hidden">
-                <div class="glass-effect rounded-3xl p-8" data-aos="fade-up">
-                    <h2 class="text-3xl font-bold text-white mb-6">Your Results</h2>
-                    <div id="studentResultsList" class="space-y-4">
-                        <!-- Student results will be displayed here -->
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Results Modal -->
-    <div id="resultsModal" class="fixed inset-0 z-50 hidden">
-        <div class="modal-backdrop absolute inset-0"></div>
-        <div class="relative z-10 flex items-center justify-center min-h-screen p-4">
-            <div class="glass-effect rounded-3xl p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-3xl font-bold text-white" id="modalExamName"></h2>
-                    <button onclick="closeModal()" class="text-gray-400 hover:text-white">
-                        <i data-feather="x" class="w-8 h-8"></i>
-                    </button>
-                </div>
-                <div id="modalContent" class="space-y-6">
-                    <!-- Modal content will be inserted here -->
                 </div>
             </div>
         </div>
@@ -387,7 +503,6 @@
   appId: "1:848211955991:web:61eae378dc4593f9dae752",
   measurementId: "G-JHHCS93NFR"
 };
-
         
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
@@ -398,6 +513,8 @@
         let rowCount = 0;
         let allClasses = new Set();
         let allYears = new Set();
+        let performanceChart = null;
+        let selectedClass = '';
         
         // Initialize AOS and Feather Icons
         AOS.init({
@@ -441,24 +558,20 @@
             rowCount++;
             const rowIndex = index || rowCount;
             const row = document.createElement('tr');
-            row.className = 'table-row border-b border-purple-500/20';
+            row.className = 'border-b border-white/10 hover:bg-white/5 transition-all';
             row.innerHTML = `
                 <td class="py-4 px-4 text-gray-300">${rowIndex}</td>
                 <td class="py-2 px-4">
-                    <input type="text" placeholder="ID" 
-                           class="glass-input input-id px-3 py-2 rounded-lg text-white placeholder-gray-400 focus:outline-none">
+                    <input type="text" placeholder="ID" maxlength="4" style="width: 80px;"
+                           class="glass-input px-3 py-2 rounded-lg text-white placeholder-gray-400 focus:outline-none">
                 </td>
                 <td class="py-2 px-4">
                     <input type="text" placeholder="Full Name" 
-                           class="glass-input input-name px-3 py-2 rounded-lg text-white placeholder-gray-400 focus:outline-none">
-                </td>
-                <td class="py-2 px-4">
-                    <input type="text" placeholder="Class" 
-                           class="glass-input input-class px-3 py-2 rounded-lg text-white placeholder-gray-400 focus:outline-none">
+                           class="glass-input w-full px-3 py-2 rounded-lg text-white placeholder-gray-400 focus:outline-none">
                 </td>
                 <td class="py-2 px-4">
                     <input type="number" placeholder="Marks" min="0" max="100"
-                           class="glass-input input-marks px-3 py-2 rounded-lg text-white placeholder-gray-400 focus:outline-none">
+                           class="glass-input w-full px-3 py-2 rounded-lg text-white placeholder-gray-400 focus:outline-none">
                 </td>
                 <td class="py-2 px-4">
                     <button onclick="removeRow(this)" class="text-red-400 hover:text-red-300 transition-colors">
@@ -478,24 +591,74 @@
             setTimeout(() => row.remove(), 300);
         }
         
-        // Portal switching
-        document.getElementById('teacherMode').addEventListener('click', () => {
-            document.getElementById('teacherPortal').classList.remove('hidden');
-            document.getElementById('studentPortal').classList.add('hidden');
-            document.getElementById('teacherMode').classList.add('bg-purple-600');
-            document.getElementById('studentMode').classList.remove('bg-purple-600');
+        // Close results table
+        function closeResultsTable() {
+            document.getElementById('resultsSection').classList.add('hidden');
+        }
+        
+        // Close student modal
+        function closeStudentModal() {
+            document.getElementById('studentResultsModal').classList.add('hidden');
+        }
+        
+        // Create class
+        document.getElementById('createClassBtn').addEventListener('click', async () => {
+            const className = document.getElementById('className').value.trim();
+            
+            if (!className) {
+                showToast('Please enter a class name', 'error');
+                return;
+            }
+            
+            showLoading(true);
+            
+            try {
+                await db.collection('classes').add({
+                    name: className,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                showToast('Class created successfully!');
+                document.getElementById('className').value = '';
+                loadClasses();
+                showLoading(false);
+            } catch (error) {
+                showToast('Error creating class: ' + error.message, 'error');
+                showLoading(false);
+            }
         });
         
-        document.getElementById('studentMode').addEventListener('click', () => {
-            document.getElementById('teacherPortal').classList.add('hidden');
-            document.getElementById('studentPortal').classList.remove('hidden');
-            document.getElementById('studentMode').classList.add('bg-purple-600');
-            document.getElementById('teacherMode').classList.remove('bg-purple-600');
-        });
+        // Load classes
+        async function loadClasses() {
+            try {
+                const snapshot = await db.collection('classes').orderBy('name').get();
+                const examClassSelect = document.getElementById('examClass');
+                const filterClassSelect = document.getElementById('filterClass');
+                
+                examClassSelect.innerHTML = '<option value="">Select Class</option>';
+                filterClassSelect.innerHTML = '<option value="">All Classes</option>';
+                
+                snapshot.forEach(doc => {
+                    const classData = doc.data();
+                    const option1 = document.createElement('option');
+                    option1.value = classData.name;
+                    option1.textContent = classData.name;
+                    examClassSelect.appendChild(option1);
+                    
+                    const option2 = document.createElement('option');
+                    option2.value = classData.name;
+                    option2.textContent = classData.name;
+                    filterClassSelect.appendChild(option2);
+                });
+            } catch (error) {
+                console.error('Error loading classes:', error);
+            }
+        }
         
         // Create exam
         document.getElementById('createExamBtn').addEventListener('click', async () => {
             const examType = document.getElementById('examType').value;
+            const examClass = document.getElementById('examClass').value;
             const examDate = document.getElementById('examDate').value;
             const examYear = document.getElementById('examYear').value;
             const totalMarks = document.getElementById('totalMarks').value;
@@ -505,11 +668,17 @@
                 return;
             }
             
+            if (!examClass) {
+                showToast('Please select a class', 'error');
+                return;
+            }
+            
             showLoading(true);
             
             try {
                 const examDoc = await db.collection('exams').add({
                     type: examType,
+                    class: examClass,
                     date: examDate,
                     year: parseInt(examYear),
                     totalMarks: parseInt(totalMarks),
@@ -517,8 +686,17 @@
                 });
                 
                 currentExamId = examDoc.id;
-                document.getElementById('currentExamName').textContent = `${examType} - ${examDate}`;
+                selectedClass = examClass;
+                document.getElementById('currentExamName').textContent = `${examType} - ${examClass} - ${examDate}`;
                 document.getElementById('resultsSection').classList.remove('hidden');
+                
+                // Add initial rows
+                const tbody = document.getElementById('resultsTableBody');
+                tbody.innerHTML = '';
+                for (let i = 1; i <= 5; i++) {
+                    tbody.appendChild(createTableRow(i));
+                }
+                feather.replace();
                 
                 showToast('Exam created successfully!');
                 showLoading(false);
@@ -560,19 +738,18 @@
                 const inputs = row.querySelectorAll('input');
                 const studentId = inputs[0].value.trim();
                 const name = inputs[1].value.trim();
-                const className = inputs[2].value.trim();
-                const marks = inputs[3].value;
+                const marks = inputs[2].value;
                 
                 if (studentId && name) {
                     results.push({
                         studentId,
                         name,
-                        class: className,
+                        class: selectedClass,
                         marks: marks ? parseInt(marks) : 0,
                         examId: currentExamId
                     });
                     
-                    allClasses.add(className);
+                    allClasses.add(selectedClass);
                     allYears.add(document.getElementById('examYear').value);
                 }
             }
@@ -587,12 +764,14 @@
                 
                 showToast(`Successfully saved ${results.length} results!`);
                 loadSavedExams();
+                updateStats();
+                updatePerformanceChart();
                 showLoading(false);
                 
-                // Clear table
-                document.getElementById('resultsTableBody').innerHTML = '';
-                rowCount = 0;
-                document.getElementById('resultsSection').classList.add('hidden');
+                // Close table
+                setTimeout(() => {
+                    document.getElementById('resultsSection').classList.add('hidden');
+                }, 1500);
             } catch (error) {
                 showToast('Error saving results: ' + error.message, 'error');
                 showLoading(false);
@@ -607,7 +786,7 @@
                 container.innerHTML = '';
                 
                 if (snapshot.empty) {
-                    container.innerHTML = '<p class="text-gray-400 col-span-full text-center">No exams found</p>';
+                    container.innerHTML = '<p class="text-gray-400 text-center">No exams found</p>';
                     return;
                 }
                 
@@ -617,88 +796,142 @@
                 snapshot.forEach(doc => {
                     const exam = doc.data();
                     const card = document.createElement('div');
-                    card.className = 'glass-effect rounded-xl p-6 hover:border-purple-400 transition-all cursor-pointer relative';
+                    card.className = 'glass-effect rounded-xl p-4 hover:border-purple-400 transition-all cursor-pointer';
                     card.innerHTML = `
-                        <h3 class="text-xl font-bold text-white mb-2">${exam.type}</h3>
-                        <p class="text-gray-400 mb-2">Date: ${exam.date}</p>
-                        <p class="text-gray-400 mb-2">Year: ${exam.year}</p>
-                        <p class="text-gray-400 mb-4">Total Marks: ${exam.totalMarks}</p>
+                        <h3 class="text-lg font-bold text-white mb-2">${exam.type}</h3>
+                        <p class="text-gray-400 text-sm mb-1">Class: ${exam.class}</p>
+                        <p class="text-gray-400 text-sm mb-1">Date: ${exam.date}</p>
+                        <p class="text-gray-400 text-sm mb-1">Year: ${exam.year}</p>
+                        <p class="text-gray-400 text-sm mb-3">Total Marks: ${exam.totalMarks}</p>
                         <div class="flex gap-2">
-                            <button onclick="viewExamResults('${doc.id}', '${exam.type} - ${exam.date}')" 
-                                    class="btn-primary px-4 py-2 rounded-lg text-white text-sm">
+                            <button onclick="viewExamResults('${doc.id}', '${exam.type} - ${exam.class} - ${exam.date}')" 
+                                    class="btn-primary px-3 py-1 rounded-lg text-white text-sm flex-1">
                                 View Results
                             </button>
-                            <button onclick="deleteExam('${doc.id}', this)" title="Delete Exam" class="px-2 py-2 rounded-lg text-red-400 hover:text-red-600 transition-colors">
+                            <button onclick="deleteExam('${doc.id}', this)" title="Delete Exam" class="px-2 py-1 rounded-lg text-red-400 hover:text-red-300 transition-colors">
                                 <i data-feather="trash-2"></i>
                             </button>
                         </div>
                     `;
                     container.appendChild(card);
                     feather.replace();
-// Delete exam function (global scope)
-window.deleteExam = async function deleteExam(examId, btn) {
-    if (!confirm('Are you sure you want to delete this exam? This will also delete all related results.')) return;
-    showLoading(true);
-    try {
-        // Delete all results for this exam
-        const resultsSnapshot = await db.collection('results').where('examId', '==', examId).get();
-        const batch = db.batch();
-        resultsSnapshot.forEach(doc => batch.delete(doc.ref));
-        await batch.commit();
-        // Delete the exam itself
-        await db.collection('exams').doc(examId).delete();
-        showToast('Exam deleted successfully!');
-        // Remove card from UI
-        const card = btn.closest('.glass-effect');
-        card.style.transition = 'all 0.3s ease';
-        card.style.opacity = '0';
-        card.style.transform = 'translateX(-100%)';
-        setTimeout(() => card.remove(), 300);
-        loadSavedExams();
-        showLoading(false);
-    } catch (error) {
-        showToast('Error deleting exam: ' + error.message, 'error');
-        showLoading(false);
-    }
-}
                 });
             } catch (error) {
                 showToast('Error loading exams: ' + error.message, 'error');
             }
         }
         
-        // Update filter options
-        function updateFilterOptions() {
-            const classSelect = document.getElementById('filterClass');
-            const yearSelect = document.getElementById('filterYear');
-            
-            // Clear existing options except "All"
-            classSelect.innerHTML = '<option value="">All Classes</option>';
-            yearSelect.innerHTML = '<option value="">All Years</option>';
-            
-            // Add class options
-            Array.from(allClasses).sort().forEach(cls => {
-                const option = document.createElement('option');
-                option.value = cls;
-                option.textContent = cls;
-                classSelect.appendChild(option);
-            });
-            
-            // Add year options
-            Array.from(allYears).sort().forEach(year => {
-                const option = document.createElement('option');
-                option.value = year;
-                option.textContent = year;
-                yearSelect.appendChild(option);
-            });
+        // Update statistics
+        async function updateStats() {
+            try {
+                const examsSnapshot = await db.collection('exams').get();
+                const resultsSnapshot = await db.collection('results').get();
+                
+                document.getElementById('totalExams').textContent = examsSnapshot.size;
+                document.getElementById('totalStudents').textContent = resultsSnapshot.size;
+                
+                if (resultsSnapshot.size > 0) {
+                    const totalMarks = resultsSnapshot.docs.reduce((sum, doc) => sum + doc.data().marks, 0);
+                    const avgMarks = (totalMarks / resultsSnapshot.size).toFixed(1);
+                    document.getElementById('avgMarks').textContent = avgMarks;
+                }
+            } catch (error) {
+                console.error('Error updating stats:', error);
+            }
         }
         
-        // View exam results with modal
+        // Update performance chart
+        async function updatePerformanceChart() {
+            try {
+                const resultsSnapshot = await db.collection('results').get();
+                const examsSnapshot = await db.collection('exams').get();
+                
+                if (resultsSnapshot.empty || examsSnapshot.empty) return;
+                
+                // Get exam types and calculate average marks for each
+                const examData = {};
+                const examTypes = [...new Set(examsSnapshot.docs.map(doc => doc.data().type))];
+                
+                for (const type of examTypes) {
+                    const typeResults = resultsSnapshot.docs.filter(doc => {
+                        const examDoc = examsSnapshot.docs.find(e => e.id === doc.data().examId);
+                        return examDoc && examDoc.data().type === type;
+                    });
+                    
+                    if (typeResults.length > 0) {
+                        const avgMarks = typeResults.reduce((sum, doc) => sum + doc.data().marks, 0) / typeResults.length;
+                        examData[type] = avgMarks;
+                    }
+                }
+                
+                const ctx = document.getElementById('performanceChart').getContext('2d');
+                
+                if (performanceChart) {
+                    performanceChart.destroy();
+                }
+                
+                performanceChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(examData),
+                        datasets: [{
+                            label: 'Average Marks',
+                            data: Object.values(examData),
+                            backgroundColor: 'rgba(124, 58, 237, 0.7)',
+                            borderColor: 'rgba(124, 58, 237, 1)',
+                            borderWidth: 2,
+                            borderRadius: 8,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                titleColor: '#fff',
+                                bodyColor: '#fff',
+                                borderColor: 'rgba(124, 58, 237, 1)',
+                                borderWidth: 1,
+                                cornerRadius: 8,
+                                displayColors: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                },
+                                ticks: {
+                                    color: 'rgba(255, 255, 255, 0.7)'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                },
+                                ticks: {
+                                    color: 'rgba(255, 255, 255, 0.7)'
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error updating performance chart:', error);
+            }
+        }
+        
+        // View exam results
         async function viewExamResults(examId, examName) {
             showLoading(true);
             try {
                 const resultsSnapshot = await db.collection('results').where('examId', '==', examId).get();
-                const examSnapshot = await db.collection('exams').doc(examId).get();
                 
                 if (resultsSnapshot.empty) {
                     showToast('No results found for this exam', 'error');
@@ -706,134 +939,56 @@ window.deleteExam = async function deleteExam(examId, btn) {
                     return;
                 }
                 
-                const exam = examSnapshot.data();
                 const results = [];
                 resultsSnapshot.forEach(doc => results.push(doc.data()));
                 
-                // Calculate statistics
-                const totalStudents = results.length;
-                const avgMarks = results.reduce((sum, r) => sum + r.marks, 0) / totalStudents;
-                const highestMarks = Math.max(...results.map(r => r.marks));
-                const lowestMarks = Math.min(...results.map(r => r.marks));
-                
-                // Group by class
-                const classGroups = {};
-                results.forEach(r => {
-                    if (!classGroups[r.class]) classGroups[r.class] = [];
-                    classGroups[r.class].push(r);
-                });
-                
-                // Prepare chart data
-                const classLabels = Object.keys(classGroups);
-                const classData = classLabels.map(cls => {
-                    const classResults = classGroups[cls];
-                    return classResults.reduce((sum, r) => sum + r.marks, 0) / classResults.length;
-                });
-                
-                // Show modal
-                document.getElementById('modalExamName').textContent = examName;
-                document.getElementById('modalContent').innerHTML = `
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                        <div class="glass-effect rounded-xl p-4 text-center">
-                            <div class="text-3xl font-bold text-purple-400">${totalStudents}</div>
-                            <div class="text-gray-300">Total Students</div>
-                        </div>
-                        <div class="glass-effect rounded-xl p-4 text-center">
-                            <div class="text-3xl font-bold text-green-400">${avgMarks.toFixed(1)}</div>
-                            <div class="text-gray-300">Average Marks</div>
-                        </div>
-                        <div class="glass-effect rounded-xl p-4 text-center">
-                            <div class="text-3xl font-bold text-yellow-400">${highestMarks}</div>
-                            <div class="text-gray-300">Highest Marks</div>
-                        </div>
-                        <div class="glass-effect rounded-xl p-4 text-center">
-                            <div class="text-3xl font-bold text-red-400">${lowestMarks}</div>
-                            <div class="text-gray-300">Lowest Marks</div>
+                // Create modal content
+                const modalContent = document.getElementById('studentResultsContent');
+                modalContent.innerHTML = `
+                    <div class="mb-6">
+                        <h3 class="text-2xl font-bold text-white mb-2">${examName}</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="glass-effect rounded-xl p-3 text-center">
+                                <div class="text-xl font-bold text-purple-400">${results.length}</div>
+                                <div class="text-gray-300 text-sm">Students</div>
+                            </div>
+                            <div class="glass-effect rounded-xl p-3 text-center">
+                                <div class="text-xl font-bold text-green-400">${(results.reduce((sum, r) => sum + r.marks, 0) / results.length).toFixed(1)}</div>
+                                <div class="text-gray-300 text-sm">Average</div>
+                            </div>
+                            <div class="glass-effect rounded-xl p-3 text-center">
+                                <div class="text-xl font-bold text-yellow-400">${Math.max(...results.map(r => r.marks))}</div>
+                                <div class="text-gray-300 text-sm">Highest</div>
+                            </div>
+                            <div class="glass-effect rounded-xl p-3 text-center">
+                                <div class="text-xl font-bold text-red-400">${Math.min(...results.map(r => r.marks))}</div>
+                                <div class="text-gray-300 text-sm">Lowest</div>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="glass-effect rounded-xl p-6">
-                        <h3 class="text-xl font-bold text-white mb-4">Class Performance</h3>
-                        <canvas id="classChart" width="400" height="200"></canvas>
-                    </div>
-                    
-                    <div class="mt-6">
-                        <h3 class="text-xl font-bold text-white mb-4">Detailed Results</h3>
-                        <div class="overflow-x-auto">
-                            <table class="w-full">
-                                <thead>
-                                    <tr class="border-b border-purple-500/30">
-                                        <th class="text-left py-3 px-4 text-purple-300">Student ID</th>
-                                        <th class="text-left py-3 px-4 text-purple-300">Name</th>
-                                        <th class="text-left py-3 px-4 text-purple-300">Class</th>
-                                        <th class="text-left py-3 px-4 text-purple-300">Marks</th>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b border-white/20">
+                                    <th class="text-left py-3 px-4 text-purple-300">Student ID</th>
+                                    <th class="text-left py-3 px-4 text-purple-300">Name</th>
+                                    <th class="text-left py-3 px-4 text-purple-300">Marks</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${results.map(r => `
+                                    <tr class="border-b border-white/10 hover:bg-white/5">
+                                        <td class="py-3 px-4 text-gray-300">${r.studentId}</td>
+                                        <td class="py-3 px-4 text-gray-300">${r.name}</td>
+                                        <td class="py-3 px-4 text-gray-300">${r.marks}</td>
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    ${results.map(r => `
-                                        <tr class="border-b border-purple-500/20">
-                                            <td class="py-3 px-4 text-gray-300">${r.studentId}</td>
-                                            <td class="py-3 px-4 text-gray-300">${r.name}</td>
-                                            <td class="py-3 px-4 text-gray-300">${r.class}</td>
-                                            <td class="py-3 px-4 text-gray-300">${r.marks}</td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>
+                                `).join('')}
+                            </tbody>
+                        </table>
                     </div>
                 `;
                 
-                document.getElementById('resultsModal').classList.remove('hidden');
-                
-                // Create chart
-                setTimeout(() => {
-                    const ctx = document.getElementById('classChart').getContext('2d');
-                    new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels: classLabels,
-                            datasets: [{
-                                label: 'Average Marks',
-                                data: classData,
-                                backgroundColor: 'rgba(124, 58, 237, 0.6)',
-                                borderColor: 'rgba(124, 58, 237, 1)',
-                                borderWidth: 1
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            plugins: {
-                                legend: {
-                                    labels: {
-                                        color: '#e0e0e0'
-                                    }
-                                }
-                            },
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    max: exam.totalMarks,
-                                    ticks: {
-                                        color: '#9ca3af'
-                                    },
-                                    grid: {
-                                        color: 'rgba(124, 58, 237, 0.2)'
-                                    }
-                                },
-                                x: {
-                                    ticks: {
-                                        color: '#9ca3af'
-                                    },
-                                    grid: {
-                                        color: 'rgba(124, 58, 237, 0.2)'
-                                    }
-                                }
-                            }
-                        }
-                    });
-                }, 100);
-                
+                document.getElementById('studentResultsModal').classList.remove('hidden');
                 showLoading(false);
             } catch (error) {
                 showToast('Error loading results: ' + error.message, 'error');
@@ -841,12 +996,39 @@ window.deleteExam = async function deleteExam(examId, btn) {
             }
         }
         
-        // Close modal
-        function closeModal() {
-            document.getElementById('resultsModal').classList.add('hidden');
+        // Delete exam
+        async function deleteExam(examId, btn) {
+            if (!confirm('Are you sure you want to delete this exam? This will also delete all related results.')) return;
+            showLoading(true);
+            try {
+                // Delete all results for this exam
+                const resultsSnapshot = await db.collection('results').where('examId', '==', examId).get();
+                const batch = db.batch();
+                resultsSnapshot.forEach(doc => batch.delete(doc.ref));
+                await batch.commit();
+                
+                // Delete the exam itself
+                await db.collection('exams').doc(examId).delete();
+                
+                showToast('Exam deleted successfully!');
+                
+                // Remove card from UI
+                const card = btn.closest('.glass-effect');
+                card.style.transition = 'all 0.3s ease';
+                card.style.opacity = '0';
+                card.style.transform = 'translateX(-100%)';
+                setTimeout(() => card.remove(), 300);
+                
+                updateStats();
+                updatePerformanceChart();
+                showLoading(false);
+            } catch (error) {
+                showToast('Error deleting exam: ' + error.message, 'error');
+                showLoading(false);
+            }
         }
         
-        // Student search results
+        // Student search
         document.getElementById('searchResultsBtn').addEventListener('click', async () => {
             const studentId = document.getElementById('studentSearchId').value.trim();
             
@@ -876,33 +1058,32 @@ window.deleteExam = async function deleteExam(examId, btn) {
                     }
                 }
                 
-                const resultsList = document.getElementById('studentResultsList');
-                resultsList.innerHTML = '';
-                
-                results.forEach(result => {
-                    const card = document.createElement('div');
-                    card.className = 'student-card rounded-xl p-6';
-                    card.innerHTML = `
-                        <div class="flex justify-between items-start mb-4">
-                            <div>
-                                <h3 class="text-xl font-bold text-white">${result.exam.type}</h3>
-                                <p class="text-gray-400">Date: ${result.exam.date}</p>
+                // Create modal content
+                const modalContent = document.getElementById('studentResultsContent');
+                modalContent.innerHTML = `
+                    <div class="space-y-4">
+                        ${results.map(result => `
+                            <div class="glass-effect rounded-xl p-6">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div>
+                                        <h3 class="text-xl font-bold text-white">${result.exam.type} - ${result.exam.class}</h3>
+                                        <p class="text-gray-400">Date: ${result.exam.date}</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-3xl font-bold text-purple-400">${result.marks}</div>
+                                        <div class="text-gray-400">/${result.exam.totalMarks}</div>
+                                    </div>
+                                </div>
+                                <div class="space-y-2">
+                                    <p class="text-gray-300"><strong>Student ID:</strong> ${result.studentId}</p>
+                                    <p class="text-gray-300"><strong>Name:</strong> ${result.name}</p>
+                                </div>
                             </div>
-                            <div class="text-right">
-                                <div class="text-3xl font-bold text-purple-400">${result.marks}</div>
-                                <div class="text-gray-400">/${result.exam.totalMarks}</div>
-                            </div>
-                        </div>
-                        <div class="space-y-2">
-                            <p class="text-gray-300"><strong>Student ID:</strong> ${result.studentId}</p>
-                            <p class="text-gray-300"><strong>Name:</strong> ${result.name}</p>
-                            <p class="text-gray-300"><strong>Class:</strong> ${result.class}</p>
-                        </div>
-                    `;
-                    resultsList.appendChild(card);
-                });
+                        `).join('')}
+                    </div>
+                `;
                 
-                document.getElementById('studentResults').classList.remove('hidden');
+                document.getElementById('studentResultsModal').classList.remove('hidden');
                 showLoading(false);
             } catch (error) {
                 showToast('Error searching results: ' + error.message, 'error');
@@ -910,9 +1091,141 @@ window.deleteExam = async function deleteExam(examId, btn) {
             }
         });
         
+        // Update filter options
+        function updateFilterOptions() {
+            const classSelect = document.getElementById('filterClass');
+            const yearSelect = document.getElementById('filterYear');
+            
+            // Clear existing options except "All"
+            classSelect.innerHTML = '<option value="">All Classes</option>';
+            yearSelect.innerHTML = '<option value="">All Years</option>';
+            
+            // Add class options
+            Array.from(allClasses).sort().forEach(cls => {
+                const option = document.createElement('option');
+                option.value = cls;
+                option.textContent = cls;
+                classSelect.appendChild(option);
+            });
+            
+            // Add year options
+            Array.from(allYears).sort().forEach(year => {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                yearSelect.appendChild(option);
+            });
+        }
+        
         // Initialize
+        loadClasses();
         loadSavedExams();
+        updateStats();
+        updatePerformanceChart();
         document.getElementById('examDate').valueAsDate = new Date();
+
+            // Load teachers
+
+            async function loadTeachers() {
+                try {
+                    const snapshot = await db.collection('teachers').orderBy('name').get();
+                    const teachersList = document.getElementById('teachersList');
+                    const noTeachersMsg = document.getElementById('noTeachersMsg');
+                    teachersList.innerHTML = '';
+                    if (snapshot.empty) {
+                        noTeachersMsg.classList.remove('hidden');
+                    } else {
+                        noTeachersMsg.classList.add('hidden');
+                        snapshot.forEach(doc => {
+                            const teacher = doc.data();
+                            const card = document.createElement('div');
+                            card.className = 'glass-effect rounded-xl p-4 flex items-center justify-between';
+                            card.innerHTML = `
+                                <div>
+                                    <div class="text-lg font-bold text-white">${teacher.name}</div>
+                                    <div class="text-gray-400 text-sm">${teacher.email || ''}</div>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button class="text-blue-400 hover:text-blue-300" title="View Teacher" onclick="viewTeacher('${doc.id}')">
+                                        <i data-feather='eye'></i>
+                                    </button>
+                                    <button class="text-red-400 hover:text-red-300" title="Delete Teacher" onclick="deleteTeacher('${doc.id}', this)">
+                                        <i data-feather='trash-2'></i>
+                                    </button>
+                                </div>
+                            `;
+                            teachersList.appendChild(card);
+                        });
+                    }
+                    feather.replace();
+                } catch (error) {
+                    showToast('Error loading teachers: ' + error.message, 'error');
+                }
+            }
+
+            // Create teacher
+
+            // Show create teacher form
+            document.getElementById('createTeacherBtn').addEventListener('click', () => {
+                document.getElementById('createTeacherForm').classList.toggle('hidden');
+                document.getElementById('teacherNameInput').focus();
+            });
+
+            // Submit teacher creation
+            document.getElementById('submitTeacherBtn').addEventListener('click', async () => {
+                const name = document.getElementById('teacherNameInput').value.trim();
+                const email = document.getElementById('teacherEmailInput').value.trim();
+                if (!name) {
+                    showToast('Please enter a teacher name', 'error');
+                    return;
+                }
+                showLoading(true);
+                try {
+                    await db.collection('teachers').add({
+                        name,
+                        email,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    showToast('Teacher created successfully!');
+                    document.getElementById('teacherNameInput').value = '';
+                    document.getElementById('teacherEmailInput').value = '';
+                    document.getElementById('createTeacherForm').classList.add('hidden');
+                    loadTeachers();
+                    showLoading(false);
+                } catch (error) {
+                    showToast('Error creating teacher: ' + error.message, 'error');
+                    showLoading(false);
+                }
+            });
+
+            // Delete teacher
+            async function deleteTeacher(teacherId, btn) {
+                if (!confirm('Are you sure you want to delete this teacher?')) return;
+                showLoading(true);
+                try {
+                    await db.collection('teachers').doc(teacherId).delete();
+                    showToast('Teacher deleted successfully!');
+                    // Remove card from UI
+                    const card = btn.closest('.glass-effect');
+                    card.style.transition = 'all 0.3s ease';
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateX(-100%)';
+                    setTimeout(() => card.remove(), 300);
+                    showLoading(false);
+                } catch (error) {
+                    showToast('Error deleting teacher: ' + error.message, 'error');
+                    showLoading(false);
+                }
+            }
+
+            // View teacher (placeholder)
+            function viewTeacher(teacherId) {
+                showToast('View teacher: ' + teacherId, 'success');
+                // Implement modal or details view as needed
+            }
+
+            // Load teachers on page load
+            loadTeachers();
     </script>
 </body>
 </html>
